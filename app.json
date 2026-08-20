@@ -2,24 +2,50 @@
   "expo": {
     "name": "mmx_mounter_app",
     "slug": "mmx_mounter_app",
+    "owner": "umesh37",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "mmxmounter",
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.bindassdealdigital.mmxmounter",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MMX needs access to your photos to attach mounting images.",
+          "cameraPermission": "MMX needs access to your camera to capture mounting images."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "729257c5-334e-4a94-8d77-ac51e718573e"
+      }
     }
   }
 }
