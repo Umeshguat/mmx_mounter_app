@@ -1,7 +1,8 @@
 import { router, Tabs } from 'expo-router';
-import { StyleSheet, View, type ColorValue } from 'react-native';
+import { StyleSheet, type ColorValue } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
+import { colors, gradients } from '../../theme/colors';
 
 function TabIcon(name: keyof typeof Ionicons.glyphMap) {
   return ({ color, size }: { color: ColorValue; size: number }) => (
@@ -11,9 +12,14 @@ function TabIcon(name: keyof typeof Ionicons.glyphMap) {
 
 function AddButton() {
   return (
-    <View style={styles.addButton}>
+    <LinearGradient
+      colors={gradients.primary}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.addButton}
+    >
       <Ionicons name="add" size={28} color={colors.white} />
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -58,8 +64,7 @@ const styles = StyleSheet.create({
   addButton: {
     width: 52,
     height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.primaryStart,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,

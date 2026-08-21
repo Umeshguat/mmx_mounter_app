@@ -6,6 +6,7 @@ import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { TextField } from '../components/TextField';
 import { GradientButton } from '../components/GradientButton';
+import { StreetIllustration } from '../components/StreetIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Login() {
@@ -67,6 +68,8 @@ export default function Login() {
           disabled={!canSubmit}
           style={styles.button}
         />
+
+        <StreetIllustration />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -79,9 +82,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
   },
   cloudsRow: {
     alignItems: 'flex-start',

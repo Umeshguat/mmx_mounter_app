@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { GrowWordmark, MmxWordmark } from '../components/MmxWordmark';
+import { SplashIllustration } from '../components/SplashIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Splash() {
@@ -26,14 +26,7 @@ export default function Splash() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.illustration}>
-        <Ionicons name="person-circle-outline" size={64} color={colors.cardBlueIcon} />
-        <View style={styles.docStack}>
-          <Ionicons name="document-text-outline" size={40} color={colors.primaryStart} />
-          <Ionicons name="grid-outline" size={28} color={colors.cardRedIcon} style={styles.docBadge} />
-        </View>
-        <Ionicons name="person-circle-outline" size={64} color={colors.cardBlueIcon} />
-      </View>
+      <SplashIllustration />
 
       <View style={styles.wordmarkBlock}>
         <View style={styles.wordmarkRow}>
@@ -60,19 +53,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  illustration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: spacing.xxl,
-  },
-  docStack: {
-    alignItems: 'center',
-  },
-  docBadge: {
-    marginTop: -8,
-  },
   wordmarkBlock: {
     alignItems: 'flex-start',
     marginBottom: spacing.xl,
@@ -82,9 +62,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   plainText: {
-    fontSize: 34,
+    fontSize: 46,
     fontWeight: '800',
     color: colors.text,
+    lineHeight: 52,
   },
   spinner: {
     marginTop: spacing.md,

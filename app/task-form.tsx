@@ -138,11 +138,11 @@ export default function TaskForm() {
         </Pressable>
         <View style={styles.footerNav}>
           <Pressable onPress={() => goToOffset(-1)} hitSlop={10}>
-            <Ionicons name="play-back" size={18} color={colors.text} />
+            <Ionicons name="play-back" size={30} color={colors.text} />
           </Pressable>
           <View style={styles.footerCircle} />
           <Pressable onPress={() => goToOffset(1)} hitSlop={10}>
-            <Ionicons name="play-forward" size={18} color={colors.text} />
+            <Ionicons name="play-forward" size={30} color={colors.text} />
           </Pressable>
         </View>
         <Pressable onPress={onComplete}>
@@ -225,30 +225,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   footerNav: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   footerCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 3,
     borderColor: colors.primaryStart,
   },
   rejectText: {
     color: colors.danger,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 20,
   },
   completeText: {
     color: colors.success,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 20,
   },
 });
