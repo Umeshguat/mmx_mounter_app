@@ -26,7 +26,7 @@ export function NotesList({ notes, onAdd, onRemove }: Props) {
       <View style={styles.header}>
         <Text style={styles.label}>Add notes</Text>
         <Pressable style={styles.addButton} onPress={() => setOpen(true)}>
-          <Ionicons name="add" size={18} color={colors.text} />
+          <Ionicons name="add" size={18} color={colors.white} />
         </Pressable>
       </View>
 
@@ -80,8 +80,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.text,
     alignItems: 'center',
     justifyContent: 'center',
   },

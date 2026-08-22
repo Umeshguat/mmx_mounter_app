@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 import { radius, spacing } from '../../theme/spacing';
 import { useApp } from '../../context/AppContext';
 import { currentUser } from '../../data/mockData';
+import { RateUsModal } from '../../components/RateUsModal';
 
 type MenuItem = {
   id: string;
@@ -16,6 +19,8 @@ type MenuItem = {
 
 export default function Profile() {
   const { logout } = useApp();
+  const [rateModalVisible, setRateModalVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const onLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -32,15 +37,18 @@ export default function Profile() {
   };
 
   const items: MenuItem[] = [
-    { id: 'notif', label: 'Notification', icon: 'notifications-outline', onPress: () => {} },
-    { id: 'help', label: 'Help & Support', icon: 'help-circle-outline', onPress: () => {} },
-    { id: 'rate', label: 'Rate Us', icon: 'star-outline', onPress: () => {} },
-    { id: 'about', label: 'About MMX', icon: 'play-outline', onPress: () => {} },
+    { id: 'notif', label: 'Notification', icon: 'notifications-outline', onPress: () => router.push('/notifications') },
+    { id: 'help', label: 'Help & Support', icon: 'help-circle-outline', onPress: () => router.push('/help-support') },
+    { id: 'rate', label: 'Rate Us', icon: 'star-outline', onPress: () => setRateModalVisible(true) },
+    { id: 'about', label: 'About MMX', icon: 'play-outline', onPress: () => router.push('/about') },
     { id: 'logout', label: 'Logout', icon: 'power-outline', danger: true, onPress: onLogout },
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
+    >
       <View style={styles.topBar}>
         <Ionicons name="menu" size={26} color={colors.text} />
       </View>
@@ -69,6 +77,8 @@ export default function Profile() {
           </Pressable>
         ))}
       </View>
+
+      <RateUsModal visible={rateModalVisible} onClose={() => setRateModalVisible(false)} />
     </ScrollView>
   );
 }
@@ -80,11 +90,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
   },
   topBar: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   title: {
     fontSize: 30,

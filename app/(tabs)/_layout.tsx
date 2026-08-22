@@ -18,7 +18,7 @@ function AddButton() {
       end={{ x: 1, y: 1 }}
       style={styles.addButton}
     >
-      <Ionicons name="add" size={28} color={colors.white} />
+      <Ionicons name="add" size={32} color={colors.white} />
     </LinearGradient>
   );
 }
@@ -56,17 +56,18 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 68,
-    paddingTop: 10,
+    height: 76,
+    paddingTop: 12,
     paddingBottom: 14,
     borderTopColor: colors.border,
   },
   addButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 18,
+    marginTop: 8,
+    marginBottom: 12,
   },
 });

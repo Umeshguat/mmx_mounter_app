@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { radius, spacing } from '../theme/spacing';
+import { spacing } from '../theme/spacing';
 import { TextField } from '../components/TextField';
 import { Dropdown } from '../components/Dropdown';
 import { DateField } from '../components/DateField';
@@ -137,11 +137,11 @@ export default function TaskForm() {
           <Text style={styles.rejectText}>Reject</Text>
         </Pressable>
         <View style={styles.footerNav}>
-          <Pressable onPress={() => goToOffset(-1)} hitSlop={10}>
+          <Pressable style={styles.footerNavButton} onPress={() => goToOffset(-1)} hitSlop={10}>
             <Ionicons name="play-back" size={30} color={colors.text} />
           </Pressable>
           <View style={styles.footerCircle} />
-          <Pressable onPress={() => goToOffset(1)} hitSlop={10}>
+          <Pressable style={styles.footerNavButton} onPress={() => goToOffset(1)} hitSlop={10}>
             <Ionicons name="play-forward" size={30} color={colors.text} />
           </Pressable>
         </View>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   photoTypeButton: {
     width: 48,
     height: 48,
-    borderRadius: radius.md,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -233,6 +233,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.lg,
+  },
+  footerNavButton: {
+    height: 46,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footerCircle: {
     width: 46,

@@ -14,6 +14,9 @@ export default function RootLayout() {
           <Stack.Screen name="vendor-select" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="task-form" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen name="help-support" />
+          <Stack.Screen name="about" />
         </Stack>
       </AppProvider>
     </SafeAreaProvider>

@@ -20,6 +20,7 @@ export function StreetIllustration() {
   return (
     <View style={styles.container}>
       <View style={styles.sun} />
+      <View style={styles.swoosh} />
 
       <View style={styles.skyline}>
         <Building height={70} width={40} />
@@ -59,6 +60,17 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     backgroundColor: colors.surfaceMuted,
+  },
+  swoosh: {
+    position: 'absolute',
+    top: 34,
+    left: -10,
+    width: '80%',
+    height: 1,
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.border,
+    transform: [{ rotate: '-8deg' }],
   },
   skyline: {
     flexDirection: 'row',

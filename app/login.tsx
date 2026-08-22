@@ -33,9 +33,13 @@ export default function Login() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.cloudsRow}>
           <Ionicons name="cloud-outline" size={54} color={colors.border} />
+          <View style={styles.cloudLine} />
+          <View style={[styles.cloudLine, styles.cloudLineShort]} />
         </View>
         <View style={styles.cloudsRowRight}>
           <Ionicons name="cloud-outline" size={64} color={colors.border} />
+          <View style={styles.cloudLine} />
+          <View style={[styles.cloudLine, styles.cloudLineShort]} />
         </View>
 
         <View style={styles.header}>
@@ -69,6 +73,8 @@ export default function Login() {
           style={styles.button}
         />
 
+        <View style={styles.flexSpacer} />
+
         <StreetIllustration />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -82,10 +88,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.lg,
+  },
+  flexSpacer: {
+    flexGrow: 1,
+    minHeight: spacing.xl,
   },
   cloudsRow: {
     alignItems: 'flex-start',
@@ -94,6 +103,17 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginTop: spacing.lg,
     marginBottom: spacing.xxl,
+  },
+  cloudLine: {
+    width: 70,
+    height: 1.5,
+    borderRadius: 1,
+    backgroundColor: colors.border,
+    marginTop: 6,
+  },
+  cloudLineShort: {
+    width: 36,
+    marginTop: 4,
   },
   header: {
     marginBottom: spacing.xl,
@@ -109,12 +129,12 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   form: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.sm,
   },
   spacer: {
-    height: spacing.md,
+    height: spacing.xs,
   },
   button: {
-    marginTop: spacing.sm,
+    marginTop: 0,
   },
 });

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
@@ -26,9 +27,13 @@ export default function Splash() {
 
   return (
     <View style={styles.container}>
-      <SplashIllustration />
+      <StatusBar hidden />
 
-      <View style={styles.wordmarkBlock}>
+      <View style={styles.topSection}>
+        <SplashIllustration />
+      </View>
+
+      <View style={styles.headingSection}>
         <View style={styles.wordmarkRow}>
           <GrowWordmark />
           <Text style={styles.plainText}> Your</Text>
@@ -40,7 +45,9 @@ export default function Splash() {
         </View>
       </View>
 
-      <ActivityIndicator color={colors.primaryStart} size="small" style={styles.spinner} />
+      <View style={styles.bottomSection}>
+        <ActivityIndicator color={colors.text} size="small" />
+      </View>
     </View>
   );
 }
@@ -49,25 +56,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  wordmarkBlock: {
+  topSection: {
+    flex: 0.45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: spacing.xl,
+  },
+  headingSection: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'flex-start',
-    marginBottom: spacing.xl,
+  },
+  bottomSection: {
+    alignItems: 'center',
+    paddingBottom: spacing.xl,
   },
   wordmarkRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   plainText: {
-    fontSize: 46,
+    fontSize: 40,
     fontWeight: '800',
     color: colors.text,
-    lineHeight: 52,
-  },
-  spinner: {
-    marginTop: spacing.md,
+    lineHeight: 44,
   },
 });

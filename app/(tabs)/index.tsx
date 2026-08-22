@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -5,24 +6,29 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { StatCard } from '../../components/StatCard';
+import { SidebarMenu } from '../../components/SidebarMenu';
 import { useApp } from '../../context/AppContext';
 import { currentUser, recentActivity } from '../../data/mockData';
 
 export default function Home() {
   const { vendor } = useApp();
   const insets = useSafeAreaInsets();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
+    <>
     <ScrollView
       style={styles.container}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
     >
       <View style={styles.topBar}>
-        <Ionicons name="menu" size={26} color={colors.text} />
-        <View>
+        <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10}>
+          <Ionicons name="menu" size={26} color={colors.text} />
+        </Pressable>
+        <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
           <View style={styles.notifDot} />
-        </View>
+        </Pressable>
       </View>
 
       <Text style={styles.greeting}>Hello, {currentUser.firstName} !</Text>
@@ -82,6 +88,8 @@ export default function Home() {
         </Pressable>
       ))}
     </ScrollView>
+    <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    </>
   );
 }
 

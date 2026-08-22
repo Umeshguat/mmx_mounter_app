@@ -3,9 +3,28 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 
+function DottedArrow({ style, rotate }: { style: object; rotate: string }) {
+  return (
+    <View style={[styles.dottedArrowWrap, style, { transform: [{ rotate }] }]}>
+      <Ionicons name="arrow-up" size={11} color={colors.textFaint} />
+      <View style={styles.dottedLine} />
+    </View>
+  );
+}
+
 function FloatingCards() {
   return (
-    <View style={styles.cardsRow}>
+    <View style={styles.cardArea}>
+      <View style={[styles.card, styles.cardStack]} />
+
+      <View style={[styles.card, styles.cardBack]}>
+        <View style={styles.grid}>
+          <View style={[styles.swatch, { backgroundColor: colors.cardBlueIcon }]} />
+          <View style={[styles.swatch, { backgroundColor: colors.border }]} />
+        </View>
+        <View style={[styles.swatch, styles.pinkSwatch, { backgroundColor: colors.cardRedIcon }]} />
+      </View>
+
       <View style={[styles.card, styles.cardFront]}>
         <View style={styles.cardHeaderRow}>
           <View style={[styles.swatch, { backgroundColor: colors.cardBlueIcon }]} />
@@ -16,13 +35,8 @@ function FloatingCards() {
         <View style={[styles.cardBodyLine, { width: '60%' }]} />
       </View>
 
-      <View style={[styles.card, styles.cardBack]}>
-        <View style={styles.grid}>
-          <View style={[styles.swatch, { backgroundColor: colors.cardBlueIcon }]} />
-          <View style={[styles.swatch, { backgroundColor: colors.border }]} />
-        </View>
-        <View style={[styles.swatch, styles.pinkSwatch, { backgroundColor: colors.cardRedIcon }]} />
-      </View>
+      <DottedArrow style={styles.arrowTopLeft} rotate="-50deg" />
+      <DottedArrow style={styles.arrowBottomRight} rotate="130deg" />
     </View>
   );
 }
@@ -54,15 +68,13 @@ export function SplashIllustration() {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: spacing.xl,
   },
-  cardsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+  cardArea: {
+    height: 128,
     marginBottom: spacing.lg,
   },
   card: {
+    position: 'absolute',
     width: 92,
     backgroundColor: colors.background,
     borderWidth: 1,
@@ -70,12 +82,21 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     padding: spacing.sm,
   },
-  cardFront: {
-    marginRight: -spacing.md,
-    zIndex: 1,
+  cardStack: {
+    top: 10,
+    left: '50%',
+    marginLeft: 6,
+    width: 78,
+    height: 56,
+    opacity: 0.6,
   },
   cardBack: {
-    marginBottom: 18,
+    top: 0,
+    left: '18%',
+  },
+  cardFront: {
+    top: 34,
+    left: '38%',
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -108,6 +129,25 @@ const styles = StyleSheet.create({
   pinkSwatch: {
     width: 16,
     height: 16,
+  },
+  dottedArrowWrap: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  dottedLine: {
+    width: 1,
+    height: 22,
+    borderLeftWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: colors.textFaint,
+  },
+  arrowTopLeft: {
+    top: 4,
+    left: 8,
+  },
+  arrowBottomRight: {
+    bottom: 4,
+    right: 8,
   },
   peopleRow: {
     flexDirection: 'row',

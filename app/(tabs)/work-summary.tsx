@@ -1,17 +1,25 @@
-import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { WorkSummaryRow } from '../../components/WorkSummaryRow';
+import { SidebarMenu } from '../../components/SidebarMenu';
 import { workSummary } from '../../data/mockData';
 
 export default function WorkSummary() {
   const sections = workSummary.map((group) => ({ title: group.date, data: group.entries }));
+  const insets = useSafeAreaInsets();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <View style={styles.container}>
+    <>
+    <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
-        <Ionicons name="menu" size={26} color={colors.text} />
+        <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10}>
+          <Ionicons name="menu" size={26} color={colors.text} />
+        </Pressable>
         <View style={styles.topBarActions}>
           <Ionicons name="search" size={22} color={colors.text} style={styles.actionIcon} />
           <View>
@@ -33,6 +41,8 @@ export default function WorkSummary() {
         stickySectionHeadersEnabled={false}
       />
     </View>
+    <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    </>
   );
 }
 
@@ -41,13 +51,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   topBarActions: {
     flexDirection: 'row',
