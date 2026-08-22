@@ -1,15 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 import { GrowWordmark, MmxWordmark } from '../components/MmxWordmark';
 import { SplashIllustration } from '../components/SplashIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Splash() {
   const { isLoading, isLoggedIn, vendor } = useApp();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -39,48 +42,53 @@ export default function Splash() {
           <Text style={styles.plainText}> Your</Text>
         </View>
         <Text style={styles.plainText}>Business</Text>
-        <View style={styles.wordmarkRow}>
-          <Text style={styles.plainText}>with </Text>
-          <MmxWordmark />
+        <Text style={styles.plainText}>with</Text>
+        <View style={styles.logoRow}>
+          <MmxWordmark size="lg" />
         </View>
       </View>
 
       <View style={styles.bottomSection}>
-        <ActivityIndicator color={colors.text} size="small" />
+        <ActivityIndicator color={colors.primaryStart} size="small" />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-  },
-  topSection: {
-    flex: 0.45,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: spacing.xl,
-  },
-  headingSection: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  bottomSection: {
-    alignItems: 'center',
-    paddingBottom: spacing.xl,
-  },
-  wordmarkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  plainText: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: colors.text,
-    lineHeight: 44,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingHorizontal: spacing.lg,
+    },
+    topSection: {
+      flex: 0.45,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: spacing.xl,
+    },
+    headingSection: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+    },
+    bottomSection: {
+      alignItems: 'center',
+      paddingBottom: spacing.xl,
+    },
+    wordmarkRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    logoRow: {
+      marginTop: spacing.md,
+    },
+    plainText: {
+      fontSize: 40,
+      fontWeight: '800',
+      color: colors.text,
+      lineHeight: 44,
+    },
+  });
+}

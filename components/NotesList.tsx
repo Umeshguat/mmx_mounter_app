@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
 type Props = {
   notes: string[];
@@ -11,6 +12,8 @@ type Props = {
 };
 
 export function NotesList({ notes, onAdd, onRemove }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
 
@@ -64,76 +67,78 @@ export function NotesList({ notes, onAdd, onRemove }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  addButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-  },
-  noteText: {
-    flex: 1,
-    marginRight: spacing.sm,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(20,24,40,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  sheet: {
-    width: '100%',
-    backgroundColor: colors.background,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-  },
-  sheetTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  input: {
-    minHeight: 80,
-    backgroundColor: colors.inputBackground,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    textAlignVertical: 'top',
-    marginBottom: spacing.md,
-  },
-  confirmButton: {
-    alignSelf: 'flex-end',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.primaryStart,
-    borderRadius: radius.md,
-  },
-  confirmText: {
-    color: colors.white,
-    fontWeight: '700',
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.sm,
+    },
+    label: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    addButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: colors.text,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+    },
+    noteText: {
+      flex: 1,
+      marginRight: spacing.sm,
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    sheet: {
+      width: '100%',
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+    },
+    sheetTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.md,
+    },
+    input: {
+      minHeight: 80,
+      backgroundColor: colors.inputBackground,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      fontSize: 15,
+      color: colors.text,
+      textAlignVertical: 'top',
+      marginBottom: spacing.md,
+    },
+    confirmButton: {
+      alignSelf: 'flex-end',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      backgroundColor: colors.primaryStart,
+      borderRadius: radius.md,
+    },
+    confirmText: {
+      color: colors.white,
+      fontWeight: '700',
+    },
+  });
+}

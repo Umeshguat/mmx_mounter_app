@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { Alert, Animated, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
 import { currentUser } from '../data/mockData';
 import { RateUsModal } from './RateUsModal';
+import { MmxWordmark } from './MmxWordmark';
+import { ToggleSwitch } from './ToggleSwitch';
 
 type MenuItem = {
   id: string;
@@ -24,6 +27,8 @@ type Props = {
 };
 
 export function SidebarMenu({ visible, onClose }: Props) {
+  const { colors, isDark, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout, vendor } = useApp();
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
@@ -82,6 +87,8 @@ export function SidebarMenu({ visible, onClose }: Props) {
 
         <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
           <View style={styles.header}>
+            <MmxWordmark size="sm" />
+
             <View style={styles.avatarWrap}>
               <View style={styles.avatar}>
                 <Ionicons name="person" size={32} color={colors.primaryStart} />
@@ -92,6 +99,14 @@ export function SidebarMenu({ visible, onClose }: Props) {
             </View>
             <Text style={styles.name}>{currentUser.name}</Text>
             {vendor ? <Text style={styles.vendorName}>{vendor.name}</Text> : null}
+          </View>
+
+          <View style={styles.themeRow}>
+            <View style={styles.themeRowLeft}>
+              <Ionicons name={isDark ? 'moon' : 'sunny'} size={20} color={colors.text} />
+              <Text style={styles.themeLabel}>Dark Mode</Text>
+            </View>
+            <ToggleSwitch value={isDark} onValueChange={toggleTheme} />
           </View>
 
           <View style={styles.menu}>
@@ -110,92 +125,115 @@ export function SidebarMenu({ visible, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    zIndex: 100,
-  },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(20,24,40,0.4)',
-  },
-  panel: {
-    width: PANEL_WIDTH,
-    height: '100%',
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  header: {
-    marginBottom: spacing.xl,
-  },
-  avatarWrap: {
-    alignSelf: 'flex-start',
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.cardBlue,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  name: {
-    marginTop: spacing.sm,
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  vendorName: {
-    marginTop: 2,
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  menu: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  menuLabel: {
-    marginLeft: spacing.md,
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  menuLabelDanger: {
-    color: colors.danger,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      flexDirection: 'row',
+      zIndex: 100,
+    },
+    backdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.overlay,
+    },
+    panel: {
+      width: PANEL_WIDTH,
+      height: '100%',
+      backgroundColor: colors.background,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xxl,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 2, height: 0 },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 12,
+    },
+    header: {
+      marginBottom: spacing.lg,
+    },
+    avatarWrap: {
+      alignSelf: 'flex-start',
+      marginTop: spacing.lg,
+    },
+    avatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.cardBlue,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    verifiedBadge: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: colors.success,
+      borderWidth: 2,
+      borderColor: colors.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    name: {
+      marginTop: spacing.sm,
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    vendorName: {
+      marginTop: 2,
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    themeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.md,
+      marginBottom: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    themeRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    themeLabel: {
+      marginLeft: spacing.md,
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    menu: {
+      borderTopWidth: 0,
+    },
+    menuRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    menuLabel: {
+      marginLeft: spacing.md,
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    menuLabelDanger: {
+      color: colors.danger,
+    },
+  });
+}

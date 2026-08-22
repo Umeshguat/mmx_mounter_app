@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
-import { radius, spacing } from '../../theme/spacing';
+import { useTheme } from '../../context/ThemeContext';
+import { spacing } from '../../theme/spacing';
+import type { ThemeColors } from '../../theme/colors';
 import { useApp } from '../../context/AppContext';
 import { currentUser } from '../../data/mockData';
 import { RateUsModal } from '../../components/RateUsModal';
+import { Card } from '../../components/Card';
+import { ToggleSwitch } from '../../components/ToggleSwitch';
 
 type MenuItem = {
   id: string;
@@ -18,6 +21,8 @@ type MenuItem = {
 };
 
 export default function Profile() {
+  const { colors, isDark, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout } = useApp();
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
@@ -49,10 +54,6 @@ export default function Profile() {
       style={styles.container}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
     >
-      <View style={styles.topBar}>
-        <Ionicons name="menu" size={26} color={colors.text} />
-      </View>
-
       <Text style={styles.title}>Profile</Text>
 
       <View style={styles.avatarWrap}>
@@ -65,7 +66,15 @@ export default function Profile() {
       </View>
       <Text style={styles.name}>{currentUser.name}</Text>
 
-      <View style={styles.menu}>
+      <Card tint="surface" padding={0} style={styles.menuCard}>
+        <View style={[styles.menuRow, styles.themeRow]}>
+          <View style={styles.menuRowLeft}>
+            <Ionicons name={isDark ? 'moon' : 'sunny'} size={22} color={colors.text} />
+            <Text style={styles.menuLabel}>Dark Mode</Text>
+          </View>
+          <ToggleSwitch value={isDark} onValueChange={toggleTheme} />
+        </View>
+
         {items.map((item, index) => (
           <Pressable
             key={item.id}
@@ -76,83 +85,89 @@ export default function Profile() {
             <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>{item.label}</Text>
           </Pressable>
         ))}
-      </View>
+      </Card>
 
       <RateUsModal visible={rateModalVisible} onClose={() => setRateModalVisible(false)} />
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  topBar: {
-    marginBottom: spacing.xl,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: spacing.lg,
-  },
-  avatarWrap: {
-    alignSelf: 'flex-start',
-  },
-  avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: colors.cardBlue,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  name: {
-    marginTop: spacing.md,
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.lg,
-  },
-  menu: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  menuRowLast: {
-    borderBottomWidth: 0,
-  },
-  menuLabel: {
-    marginLeft: spacing.md,
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  menuLabelDanger: {
-    color: colors.danger,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.xl,
+    },
+    title: {
+      fontSize: 30,
+      fontWeight: '800',
+      color: colors.text,
+      marginBottom: spacing.lg,
+    },
+    avatarWrap: {
+      alignSelf: 'flex-start',
+    },
+    avatar: {
+      width: 84,
+      height: 84,
+      borderRadius: 42,
+      backgroundColor: colors.cardBlue,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    verifiedBadge: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.success,
+      borderWidth: 2,
+      borderColor: colors.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    name: {
+      marginTop: spacing.md,
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.lg,
+    },
+    menuCard: {
+      overflow: 'hidden',
+    },
+    menuRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    menuRowLast: {
+      borderBottomWidth: 0,
+    },
+    themeRow: {
+      justifyContent: 'space-between',
+    },
+    menuRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    menuLabel: {
+      marginLeft: spacing.md,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    menuLabelDanger: {
+      color: colors.danger,
+    },
+  });
+}

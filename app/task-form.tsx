@@ -2,20 +2,25 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 import { TextField } from '../components/TextField';
 import { Dropdown } from '../components/Dropdown';
 import { DateField } from '../components/DateField';
 import { GradientButton } from '../components/GradientButton';
 import { NotesList } from '../components/NotesList';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
+import { Card } from '../components/Card';
 import { tasks, vendors, mediaTypes, lightTypes, type PhotoType } from '../data/mockData';
 
 const mediaTypeOptions = mediaTypes.map((name, index) => ({ id: `mt-${index}`, name }));
 const lightTypeOptions = lightTypes.map((name, index) => ({ id: `lt-${index}`, name }));
 
 export default function TaskForm() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const { taskId } = useLocalSearchParams<{ taskId?: string }>();
   const taskIndex = useMemo(() => tasks.findIndex((t) => t.id === taskId), [taskId]);
   const task = taskIndex >= 0 ? tasks[taskIndex] : null;
@@ -69,41 +74,47 @@ export default function TaskForm() {
 
         <Text style={styles.title}>Task</Text>
 
-        <Field label="Campaign name">
-          <TextField icon="pricetag-outline" placeholder="Enter campaign name" value={campaignName} onChangeText={setCampaignName} />
-        </Field>
+        <Card tint="muted" style={styles.section}>
+          <Field label="Campaign name" styles={styles}>
+            <TextField icon="pricetag-outline" placeholder="Enter campaign name" value={campaignName} onChangeText={setCampaignName} />
+          </Field>
 
-        <Field label="Media">
-          <TextField icon="images-outline" placeholder="Enter media name" value={media} onChangeText={setMedia} />
-        </Field>
+          <Field label="Media" styles={styles}>
+            <TextField icon="images-outline" placeholder="Enter media name" value={media} onChangeText={setMedia} />
+          </Field>
 
-        <Field label="Media type">
-          <Dropdown icon="layers-outline" placeholder="Select media type" value={mediaType} options={mediaTypeOptions} onSelect={setMediaType} />
-        </Field>
+          <Field label="Media type" styles={styles} last>
+            <Dropdown icon="layers-outline" placeholder="Select media type" value={mediaType} options={mediaTypeOptions} onSelect={setMediaType} />
+          </Field>
+        </Card>
 
-        <Field label="Display start date">
-          <DateField placeholder="Enter display start date" value={startDate} onChange={setStartDate} />
-        </Field>
+        <Card tint="muted" style={styles.section}>
+          <Field label="Display start date" styles={styles}>
+            <DateField placeholder="Enter display start date" value={startDate} onChange={setStartDate} />
+          </Field>
 
-        <Field label="Display end date">
-          <DateField placeholder="Enter display end date" value={endDate} onChange={setEndDate} />
-        </Field>
+          <Field label="Display end date" styles={styles} last>
+            <DateField placeholder="Enter display end date" value={endDate} onChange={setEndDate} />
+          </Field>
+        </Card>
 
-        <Field label="Vendor">
-          <Dropdown icon="business-outline" placeholder="Select vendor" value={vendor} options={vendors} onSelect={setVendor} />
-        </Field>
+        <Card tint="muted" style={styles.section}>
+          <Field label="Vendor" styles={styles}>
+            <Dropdown icon="business-outline" placeholder="Select vendor" value={vendor} options={vendors} onSelect={setVendor} />
+          </Field>
 
-        <Field label="Light type">
-          <Dropdown icon="bulb-outline" placeholder="Select light type" value={lightType} options={lightTypeOptions} onSelect={setLightType} />
-        </Field>
+          <Field label="Light type" styles={styles}>
+            <Dropdown icon="bulb-outline" placeholder="Select light type" value={lightType} options={lightTypeOptions} onSelect={setLightType} />
+          </Field>
 
-        <Field label="Size">
-          <TextField icon="resize-outline" placeholder="Enter size" value={size} onChangeText={setSize} />
-        </Field>
+          <Field label="Size" styles={styles}>
+            <TextField icon="resize-outline" placeholder="Enter size" value={size} onChangeText={setSize} />
+          </Field>
 
-        <Field label="Quantity">
-          <TextField icon="calculator-outline" placeholder="Enter quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
-        </Field>
+          <Field label="Quantity" styles={styles} last>
+            <TextField icon="calculator-outline" placeholder="Enter quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
+          </Field>
+        </Card>
 
         <Text style={styles.sectionLabel}>Photo type</Text>
         <View style={styles.photoTypeRow}>
@@ -153,107 +164,126 @@ export default function TaskForm() {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+  label,
+  children,
+  styles,
+  last,
+}: {
+  label: string;
+  children: ReactNode;
+  styles: ReturnType<typeof createStyles>;
+  last?: boolean;
+}) {
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, last && styles.fieldLast]}>
       <Text style={styles.fieldLabel}>{label}</Text>
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  backButton: {
-    marginBottom: spacing.md,
-    alignSelf: 'flex-start',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: spacing.lg,
-  },
-  field: {
-    marginBottom: spacing.md,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  photoTypeRow: {
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-  },
-  photoTypeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-  },
-  photoTypeInactive: {
-    opacity: 0.4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.md,
-  },
-  submitButton: {
-    marginTop: spacing.lg,
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  footerNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.lg,
-  },
-  footerNavButton: {
-    height: 46,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 3,
-    borderColor: colors.primaryStart,
-  },
-  rejectText: {
-    color: colors.danger,
-    fontWeight: '700',
-    fontSize: 20,
-  },
-  completeText: {
-    color: colors.success,
-    fontWeight: '700',
-    fontSize: 20,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    backButton: {
+      marginBottom: spacing.md,
+      alignSelf: 'flex-start',
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: colors.text,
+      marginBottom: spacing.lg,
+    },
+    section: {
+      marginBottom: spacing.md,
+    },
+    field: {
+      marginBottom: spacing.md,
+    },
+    fieldLast: {
+      marginBottom: 0,
+    },
+    fieldLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.xs,
+    },
+    sectionLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    photoTypeRow: {
+      flexDirection: 'row',
+      marginBottom: spacing.md,
+    },
+    photoTypeButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.sm,
+    },
+    photoTypeInactive: {
+      opacity: 0.4,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: spacing.md,
+    },
+    submitButton: {
+      marginTop: spacing.lg,
+    },
+    footer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    footerNav: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.lg,
+    },
+    footerNavButton: {
+      height: 46,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    footerCircle: {
+      width: 46,
+      height: 46,
+      borderRadius: 23,
+      borderWidth: 3,
+      borderColor: colors.primaryStart,
+    },
+    rejectText: {
+      color: colors.danger,
+      fontWeight: '700',
+      fontSize: 20,
+    },
+    completeText: {
+      color: colors.success,
+      fontWeight: '700',
+      fontSize: 20,
+    },
+  });
+}

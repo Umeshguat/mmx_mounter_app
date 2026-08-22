@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { spacing } from '../../theme/spacing';
+import type { ThemeColors } from '../../theme/colors';
 import { StatCard } from '../../components/StatCard';
+import { Card } from '../../components/Card';
+import { Badge } from '../../components/Badge';
 import { SidebarMenu } from '../../components/SidebarMenu';
 import { useApp } from '../../context/AppContext';
 import { currentUser, recentActivity } from '../../data/mockData';
 
 export default function Home() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { vendor } = useApp();
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,7 +32,9 @@ export default function Home() {
         </Pressable>
         <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
-          <View style={styles.notifDot} />
+          <View style={styles.notifDot}>
+            <Badge variant="dot" tone="red" size={8} />
+          </View>
         </Pressable>
       </View>
 
@@ -72,19 +79,21 @@ export default function Home() {
 
       <Text style={styles.sectionTitle}>Recent</Text>
       {recentActivity.map((item) => (
-        <Pressable key={item.id} style={styles.recentRow}>
-          <View
-            style={[
-              styles.recentIcon,
-              { backgroundColor: item.color === 'green' ? colors.cardGreenIcon : colors.cardOrangeIcon },
-            ]}
-          >
-            <Ionicons name={item.icon === 'calendar' ? 'calendar' : 'desktop'} size={20} color={colors.white} />
-          </View>
-          <View style={styles.recentInfo}>
-            <Text style={styles.recentTitle}>{item.title}</Text>
-            <Text style={styles.recentDate}>{item.date}</Text>
-          </View>
+        <Pressable key={item.id}>
+          <Card tint="muted" style={styles.recentRow}>
+            <View
+              style={[
+                styles.recentIcon,
+                { backgroundColor: item.color === 'green' ? colors.cardGreenIcon : colors.cardOrangeIcon },
+              ]}
+            >
+              <Ionicons name={item.icon === 'calendar' ? 'calendar' : 'desktop'} size={20} color={colors.white} />
+            </View>
+            <View style={styles.recentInfo}>
+              <Text style={styles.recentTitle}>{item.title}</Text>
+              <Text style={styles.recentDate}>{item.date}</Text>
+            </View>
+          </Card>
         </Pressable>
       ))}
     </ScrollView>
@@ -93,80 +102,75 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xl,
-  },
-  notifDot: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primaryStart,
-  },
-  greeting: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  subGreeting: {
-    marginTop: 2,
-    fontSize: 15,
-    color: colors.textMuted,
-    marginBottom: spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  recentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 14,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  recentIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  recentInfo: {
-    flex: 1,
-  },
-  recentTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  recentDate: {
-    marginTop: 2,
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.xl,
+    },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.xl,
+    },
+    notifDot: {
+      position: 'absolute',
+      top: -2,
+      right: -2,
+    },
+    greeting: {
+      fontSize: 30,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    subGreeting: {
+      marginTop: 2,
+      fontSize: 15,
+      color: colors.textMuted,
+      marginBottom: spacing.lg,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.md,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginBottom: spacing.md,
+    },
+    recentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    recentIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    recentInfo: {
+      flex: 1,
+    },
+    recentTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    recentDate: {
+      marginTop: 2,
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+  });
+}

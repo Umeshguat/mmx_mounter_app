@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
 type Props = TextInputProps & {
   icon: keyof typeof Ionicons.glyphMap;
@@ -10,6 +11,8 @@ type Props = TextInputProps & {
 };
 
 export function TextField({ icon, secure, style, ...rest }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [hidden, setHidden] = useState(!!secure);
 
   return (
@@ -30,21 +33,25 @@ export function TextField({ icon, secure, style, ...rest }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.inputBackground,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    height: 56,
-  },
-  leftIcon: {
-    marginRight: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    wrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBackground,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.md,
+      height: 56,
+    },
+    leftIcon: {
+      marginRight: spacing.sm,
+    },
+    input: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+    },
+  });
+}

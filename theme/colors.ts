@@ -1,4 +1,43 @@
-export const colors = {
+export interface ThemeColors {
+  primaryStart: string;
+  primaryEnd: string;
+
+  text: string;
+  textMuted: string;
+  textFaint: string;
+
+  background: string;
+  inputBackground: string;
+  surfaceMuted: string;
+  surfaceElevated: string;
+
+  border: string;
+
+  cardGreen: string;
+  cardGreenIcon: string;
+  cardBlue: string;
+  cardBlueIcon: string;
+  cardOrange: string;
+  cardOrangeIcon: string;
+  cardRed: string;
+  cardRedIcon: string;
+
+  day: string;
+  night: string;
+
+  danger: string;
+  success: string;
+
+  logoNavy: string;
+  logoRed: string;
+  logoCyan: string;
+
+  white: string;
+  overlay: string;
+  shadow: string;
+}
+
+export const lightColors: ThemeColors = {
   primaryStart: '#2A6BF2',
   primaryEnd: '#12C7E0',
 
@@ -9,6 +48,7 @@ export const colors = {
   background: '#FFFFFF',
   inputBackground: '#EDF1FA',
   surfaceMuted: '#F3F5FA',
+  surfaceElevated: '#FFFFFF',
 
   border: '#E7EAF2',
 
@@ -32,8 +72,51 @@ export const colors = {
   logoCyan: '#12C7E0',
 
   white: '#FFFFFF',
-} as const;
+  overlay: 'rgba(20, 24, 40, 0.4)',
+  shadow: '#1B2130',
+};
+
+export const darkColors: ThemeColors = {
+  primaryStart: '#4C82F5',
+  primaryEnd: '#2DD4EF',
+
+  text: '#EDEFF5',
+  textMuted: '#9BA3B4',
+  textFaint: '#5B6373',
+
+  background: '#0B0F1A',
+  inputBackground: '#1B2130',
+  surfaceMuted: '#161B27',
+  surfaceElevated: '#1B2130',
+
+  border: '#262D3D',
+
+  cardGreen: '#173425',
+  cardGreenIcon: '#39D07C',
+  cardBlue: '#16233B',
+  cardBlueIcon: '#5C93FF',
+  cardOrange: '#3A2A14',
+  cardOrangeIcon: '#F4A840',
+  cardRed: '#3A1B1D',
+  cardRedIcon: '#F4645F',
+
+  day: '#F4A840',
+  night: '#C6CCDA',
+
+  danger: '#F4645F',
+  success: '#39D07C',
+
+  logoNavy: '#232B6B',
+  logoRed: '#E63946',
+  logoCyan: '#12C7E0',
+
+  white: '#FFFFFF',
+  overlay: 'rgba(0, 0, 0, 0.6)',
+  shadow: '#000000',
+};
+
+export const colors = lightColors;
 
 export const gradients = {
-  primary: [colors.primaryStart, colors.primaryEnd] as const,
+  primary: [lightColors.primaryStart, lightColors.primaryEnd] as [string, string],
 };

@@ -1,8 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
+import { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
 export type PickedImage = {
   uri: string;
@@ -15,6 +17,9 @@ type Props = {
 };
 
 export function ImagesList({ images, onAdd }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
@@ -51,44 +56,48 @@ export function ImagesList({ images, onAdd }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  addButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  thumbWrap: {
-    width: '23%',
-    alignItems: 'center',
-  },
-  thumb: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-  },
-  sizeLabel: {
-    marginTop: 4,
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.sm,
+    },
+    label: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    addButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: colors.text,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    thumbWrap: {
+      width: '23%',
+      alignItems: 'center',
+    },
+    thumb: {
+      width: '100%',
+      aspectRatio: 1,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sizeLabel: {
+      marginTop: 4,
+      fontSize: 11,
+      color: colors.textMuted,
+    },
+  });
+}

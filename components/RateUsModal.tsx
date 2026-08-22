@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 import { GradientButton } from './GradientButton';
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
 };
 
 export function RateUsModal({ visible, onClose }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
 
@@ -66,49 +69,56 @@ export function RateUsModal({ visible, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(20,24,40,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  sheet: {
-    width: '100%',
-    backgroundColor: colors.background,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  starsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  star: {
-    marginHorizontal: 4,
-  },
-  input: {
-    minHeight: 80,
-    backgroundColor: colors.inputBackground,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    textAlignVertical: 'top',
-    marginBottom: spacing.lg,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    sheet: {
+      width: '100%',
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.2,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: colors.text,
+      textAlign: 'center',
+    },
+    subtitle: {
+      marginTop: spacing.xs,
+      fontSize: 14,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: spacing.lg,
+    },
+    starsRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginBottom: spacing.lg,
+    },
+    star: {
+      marginHorizontal: 4,
+    },
+    input: {
+      minHeight: 80,
+      backgroundColor: colors.inputBackground,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      fontSize: 15,
+      color: colors.text,
+      textAlignVertical: 'top',
+      marginBottom: spacing.lg,
+    },
+  });
+}

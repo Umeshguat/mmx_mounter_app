@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
-function Person() {
+function Person({ colors, styles }: { colors: ThemeColors; styles: ReturnType<typeof createStyles> }) {
   return (
     <View style={styles.personWrap}>
       <Ionicons name="person" size={64} color={colors.text} />
@@ -14,6 +16,9 @@ function Person() {
 }
 
 export function VendorHandoffIllustration() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       <View style={styles.checkBadge}>
@@ -21,7 +26,7 @@ export function VendorHandoffIllustration() {
       </View>
 
       <View style={styles.row}>
-        <Person />
+        <Person colors={colors} styles={styles} />
 
         <View style={styles.card}>
           <View style={styles.cardDot} />
@@ -31,13 +36,14 @@ export function VendorHandoffIllustration() {
           </View>
         </View>
 
-        <Person />
+        <Person colors={colors} styles={styles} />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     marginBottom: spacing.xxl,
   },
@@ -104,4 +110,5 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: spacing.xs,
   },
-});
+  });
+}

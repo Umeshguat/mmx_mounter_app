@@ -1,12 +1,16 @@
+import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
 export function ScreenHeader({ title }: { title: string }) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={[styles.row, { marginTop: insets.top + spacing.lg }]}>
@@ -18,17 +22,19 @@ export function ScreenHeader({ title }: { title: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    marginBottom: spacing.lg,
-  },
-  backButton: {
-    marginBottom: spacing.md,
-    alignSelf: 'flex-start',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.text,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    row: {
+      marginBottom: spacing.lg,
+    },
+    backButton: {
+      marginBottom: spacing.md,
+      alignSelf: 'flex-start',
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: colors.text,
+    },
+  });
+}

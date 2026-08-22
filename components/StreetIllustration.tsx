@@ -1,13 +1,31 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
-function Building({ height, width }: { height: number; width: number }) {
+function Building({
+  height,
+  width,
+  styles,
+}: {
+  height: number;
+  width: number;
+  styles: ReturnType<typeof createStyles>;
+}) {
   return <View style={[styles.building, { height, width }]} />;
 }
 
-function Worker({ size = 30 }: { size?: number }) {
+function Worker({
+  size = 30,
+  colors,
+  styles,
+}: {
+  size?: number;
+  colors: ThemeColors;
+  styles: ReturnType<typeof createStyles>;
+}) {
   return (
     <View style={styles.worker}>
       <Ionicons name="person" size={size} color={colors.text} />
@@ -17,36 +35,40 @@ function Worker({ size = 30 }: { size?: number }) {
 }
 
 export function StreetIllustration() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       <View style={styles.sun} />
       <View style={styles.swoosh} />
 
       <View style={styles.skyline}>
-        <Building height={70} width={40} />
-        <Building height={110} width={54} />
-        <Building height={60} width={36} />
+        <Building height={70} width={40} styles={styles} />
+        <Building height={110} width={54} styles={styles} />
+        <Building height={60} width={36} styles={styles} />
         <Ionicons name="leaf-outline" size={22} color={colors.border} style={styles.tree} />
-        <Building height={40} width={30} />
-        <Building height={80} width={46} />
+        <Building height={40} width={30} styles={styles} />
+        <Building height={80} width={46} styles={styles} />
         <Ionicons name="leaf-outline" size={22} color={colors.border} style={styles.tree} />
-        <Building height={95} width={50} />
+        <Building height={95} width={50} styles={styles} />
       </View>
 
       <View style={styles.ground} />
 
       <View style={styles.figures}>
-        <Worker size={26} />
-        <Worker size={22} />
+        <Worker size={26} colors={colors} styles={styles} />
+        <Worker size={22} colors={colors} styles={styles} />
         <View style={styles.bench} />
         <Ionicons name="cog-outline" size={16} color={colors.cardRedIcon} style={styles.cone} />
-        <Worker size={24} />
+        <Worker size={24} colors={colors} styles={styles} />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     height: 150,
     justifyContent: 'flex-end',
@@ -118,4 +140,5 @@ const styles = StyleSheet.create({
   cone: {
     marginBottom: 2,
   },
-});
+  });
+}

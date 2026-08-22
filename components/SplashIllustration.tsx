@@ -1,9 +1,21 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
-function DottedArrow({ style, rotate }: { style: object; rotate: string }) {
+function DottedArrow({
+  style,
+  rotate,
+  colors,
+  styles,
+}: {
+  style: object;
+  rotate: string;
+  colors: ThemeColors;
+  styles: ReturnType<typeof createStyles>;
+}) {
   return (
     <View style={[styles.dottedArrowWrap, style, { transform: [{ rotate }] }]}>
       <Ionicons name="arrow-up" size={11} color={colors.textFaint} />
@@ -12,7 +24,7 @@ function DottedArrow({ style, rotate }: { style: object; rotate: string }) {
   );
 }
 
-function FloatingCards() {
+function FloatingCards({ colors, styles }: { colors: ThemeColors; styles: ReturnType<typeof createStyles> }) {
   return (
     <View style={styles.cardArea}>
       <View style={[styles.card, styles.cardStack]} />
@@ -35,16 +47,19 @@ function FloatingCards() {
         <View style={[styles.cardBodyLine, { width: '60%' }]} />
       </View>
 
-      <DottedArrow style={styles.arrowTopLeft} rotate="-50deg" />
-      <DottedArrow style={styles.arrowBottomRight} rotate="130deg" />
+      <DottedArrow style={styles.arrowTopLeft} rotate="-50deg" colors={colors} styles={styles} />
+      <DottedArrow style={styles.arrowBottomRight} rotate="130deg" colors={colors} styles={styles} />
     </View>
   );
 }
 
 export function SplashIllustration() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
-      <FloatingCards />
+      <FloatingCards colors={colors} styles={styles} />
 
       <View style={styles.peopleRow}>
         <View style={styles.person}>
@@ -65,7 +80,8 @@ export function SplashIllustration() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     width: '100%',
   },
@@ -196,4 +212,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginTop: spacing.lg,
   },
-});
+  });
+}

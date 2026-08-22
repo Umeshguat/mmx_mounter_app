@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
+import type { ThemeColors } from '../theme/colors';
 
 type Option = { id: string; name: string };
 
@@ -15,6 +16,8 @@ type Props = {
 };
 
 export function Dropdown({ icon, placeholder, value, options, onSelect }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,6 +41,7 @@ export function Dropdown({ icon, placeholder, value, options, onSelect }: Props)
       >
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{placeholder}</Text>
             <FlatList
               data={options}
@@ -64,63 +68,80 @@ export function Dropdown({ icon, placeholder, value, options, onSelect }: Props)
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.inputBackground,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    height: 56,
-  },
-  leftIcon: {
-    marginRight: spacing.sm,
-  },
-  text: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text,
-  },
-  placeholder: {
-    color: colors.textFaint,
-  },
-  chevronCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.textFaint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(20,24,40,0.4)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    width: '100%',
-    backgroundColor: colors.background,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
-    maxHeight: '60%',
-  },
-  sheetTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  optionText: {
-    fontSize: 16,
-    color: colors.text,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    wrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBackground,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.md,
+      height: 56,
+    },
+    leftIcon: {
+      marginRight: spacing.sm,
+    },
+    text: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+    },
+    placeholder: {
+      color: colors.textFaint,
+    },
+    chevronCircle: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: colors.textFaint,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      width: '100%',
+      backgroundColor: colors.surfaceElevated,
+      borderTopLeftRadius: radius.lg,
+      borderTopRightRadius: radius.lg,
+      padding: spacing.lg,
+      maxHeight: '60%',
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: -6 },
+      shadowOpacity: 0.15,
+      shadowRadius: 20,
+      elevation: 12,
+    },
+    sheetHandle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: radius.pill,
+      backgroundColor: colors.border,
+      marginBottom: spacing.md,
+    },
+    sheetTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.md,
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    optionText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+  });
+}

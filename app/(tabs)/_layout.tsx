@@ -1,8 +1,11 @@
 import { router, Tabs } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, type ColorValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, gradients } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
+import { gradients } from '../../theme/colors';
+import type { ThemeColors } from '../../theme/colors';
 
 function TabIcon(name: keyof typeof Ionicons.glyphMap) {
   return ({ color, size }: { color: ColorValue; size: number }) => (
@@ -11,6 +14,9 @@ function TabIcon(name: keyof typeof Ionicons.glyphMap) {
 }
 
 function AddButton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <LinearGradient
       colors={gradients.primary}
@@ -24,6 +30,9 @@ function AddButton() {
 }
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Tabs
       screenOptions={{
@@ -54,20 +63,28 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabBar: {
-    height: 76,
-    paddingTop: 12,
-    paddingBottom: 14,
-    borderTopColor: colors.border,
-  },
-  addButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 12,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    tabBar: {
+      height: 76,
+      paddingTop: 12,
+      paddingBottom: 14,
+      backgroundColor: colors.surfaceElevated,
+      borderTopColor: colors.border,
+    },
+    addButton: {
+      width: 60,
+      height: 60,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+      marginBottom: 12,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      elevation: 5,
+    },
+  });
+}
