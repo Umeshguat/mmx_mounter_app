@@ -12,6 +12,7 @@ import { GradientButton } from '../components/GradientButton';
 import { NotesList } from '../components/NotesList';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { Card } from '../components/Card';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { tasks, vendors, mediaTypes, lightTypes, type PhotoType } from '../data/mockData';
 
 const mediaTypeOptions = mediaTypes.map((name, index) => ({ id: `mt-${index}`, name }));
@@ -40,39 +41,14 @@ export default function TaskForm() {
   );
   const [images, setImages] = useState<PickedImage[]>([]);
 
-  const goToOffset = (offset: number) => {
-    if (taskIndex < 0) return;
-    const nextIndex = taskIndex + offset;
-    if (nextIndex < 0 || nextIndex >= tasks.length) return;
-    router.setParams({ taskId: tasks[nextIndex].id });
-  };
-
   const onSubmit = () => {
     Alert.alert('Submitted', 'Task details have been saved.', [{ text: 'OK', onPress: () => router.back() }]);
-  };
-
-  const onReject = () => {
-    Alert.alert('Reject task', 'Are you sure you want to reject this task?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reject', style: 'destructive', onPress: () => router.back() },
-    ]);
-  };
-
-  const onComplete = () => {
-    Alert.alert('Complete task', 'Mark this task as complete?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Complete', onPress: () => router.back() },
-    ]);
   };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </Pressable>
-
-        <Text style={styles.title}>Task</Text>
+        <ScreenHeader title="Task" />
 
         <Card tint="muted" style={styles.section}>
           <Field label="Campaign name" styles={styles}>
@@ -84,7 +60,7 @@ export default function TaskForm() {
           </Field>
 
           <Field label="Media type" styles={styles} last>
-            <Dropdown icon="layers-outline" placeholder="Select media type" value={mediaType} options={mediaTypeOptions} onSelect={setMediaType} />
+            <Dropdown icon="layers-outline" placeholder="Select media type" value={mediaType} options={mediaTypeOptions} onSelect={setMediaType} searchable />
           </Field>
         </Card>
 
@@ -100,11 +76,11 @@ export default function TaskForm() {
 
         <Card tint="muted" style={styles.section}>
           <Field label="Vendor" styles={styles}>
-            <Dropdown icon="business-outline" placeholder="Select vendor" value={vendor} options={vendors} onSelect={setVendor} />
+            <Dropdown icon="business-outline" placeholder="Select vendor" value={vendor} options={vendors} onSelect={setVendor} searchable />
           </Field>
 
           <Field label="Light type" styles={styles}>
-            <Dropdown icon="bulb-outline" placeholder="Select light type" value={lightType} options={lightTypeOptions} onSelect={setLightType} />
+            <Dropdown icon="bulb-outline" placeholder="Select light type" value={lightType} options={lightTypeOptions} onSelect={setLightType} searchable />
           </Field>
 
           <Field label="Size" styles={styles}>
@@ -142,24 +118,6 @@ export default function TaskForm() {
 
         <GradientButton label="Submit" onPress={onSubmit} style={styles.submitButton} />
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Pressable onPress={onReject}>
-          <Text style={styles.rejectText}>Reject</Text>
-        </Pressable>
-        <View style={styles.footerNav}>
-          <Pressable style={styles.footerNavButton} onPress={() => goToOffset(-1)} hitSlop={10}>
-            <Ionicons name="play-back" size={30} color={colors.text} />
-          </Pressable>
-          <View style={styles.footerCircle} />
-          <Pressable style={styles.footerNavButton} onPress={() => goToOffset(1)} hitSlop={10}>
-            <Ionicons name="play-forward" size={30} color={colors.text} />
-          </Pressable>
-        </View>
-        <Pressable onPress={onComplete}>
-          <Text style={styles.completeText}>Complete</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
@@ -191,18 +149,7 @@ function createStyles(colors: ThemeColors) {
     },
     content: {
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
       paddingBottom: spacing.xxl,
-    },
-    backButton: {
-      marginBottom: spacing.md,
-      alignSelf: 'flex-start',
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: '800',
-      color: colors.text,
-      marginBottom: spacing.lg,
     },
     section: {
       marginBottom: spacing.md,
@@ -247,43 +194,6 @@ function createStyles(colors: ThemeColors) {
     },
     submitButton: {
       marginTop: spacing.lg,
-    },
-    footer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.lg,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    footerNav: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.lg,
-    },
-    footerNavButton: {
-      height: 46,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    footerCircle: {
-      width: 46,
-      height: 46,
-      borderRadius: 23,
-      borderWidth: 3,
-      borderColor: colors.primaryStart,
-    },
-    rejectText: {
-      color: colors.danger,
-      fontWeight: '700',
-      fontSize: 20,
-    },
-    completeText: {
-      color: colors.success,
-      fontWeight: '700',
-      fontSize: 20,
     },
   });
 }

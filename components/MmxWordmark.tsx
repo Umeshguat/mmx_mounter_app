@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   letter: {
-    fontSize: 40,
+    fontSize: 46,
     fontWeight: '800',
-    lineHeight: 44,
+    lineHeight: 50,
   },
 });

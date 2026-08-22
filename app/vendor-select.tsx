@@ -6,7 +6,7 @@ import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Dropdown } from '../components/Dropdown';
 import { GradientButton } from '../components/GradientButton';
-import { VendorHandoffIllustration } from '../components/VendorHandoffIllustration';
+import { HandshakeIllustration } from '../components/HandshakeIllustration';
 import { useApp } from '../context/AppContext';
 import { vendors } from '../data/mockData';
 import type { Vendor } from '../data/mockData';
@@ -25,7 +25,9 @@ export default function VendorSelect() {
 
   return (
     <View style={styles.container}>
-      <VendorHandoffIllustration />
+      <View style={styles.illustrationWrap}>
+        <HandshakeIllustration size={300} />
+      </View>
 
       <View style={styles.header}>
         <Text style={styles.title}>Vendor</Text>
@@ -38,6 +40,7 @@ export default function VendorSelect() {
         value={vendor}
         options={vendors}
         onSelect={setVendor}
+        searchable
       />
 
       <GradientButton
@@ -58,6 +61,11 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xxl,
+    },
+    illustrationWrap: {
+      alignItems: 'center',
+      paddingTop: 40,
+      marginBottom: spacing.lg,
     },
     header: {
       marginBottom: spacing.lg,

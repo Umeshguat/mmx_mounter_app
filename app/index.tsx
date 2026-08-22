@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { GrowWordmark, MmxWordmark } from '../components/MmxWordmark';
-import { SplashIllustration } from '../components/SplashIllustration';
+import { DeskWorkerIllustration } from '../components/DeskWorkerIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Splash() {
@@ -33,7 +33,7 @@ export default function Splash() {
       <StatusBar hidden />
 
       <View style={styles.topSection}>
-        <SplashIllustration />
+        <DeskWorkerIllustration size={330} />
       </View>
 
       <View style={styles.headingSection}>
@@ -66,12 +66,12 @@ function createStyles(colors: ThemeColors) {
       flex: 0.45,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingTop: spacing.xl,
+      paddingTop: spacing.xl + 40,
     },
     headingSection: {
       flex: 1,
       justifyContent: 'center',
-      alignItems: 'flex-start',
+      alignItems: 'center',
     },
     bottomSection: {
       alignItems: 'center',
@@ -80,15 +80,18 @@ function createStyles(colors: ThemeColors) {
     wordmarkRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
     },
     logoRow: {
       marginTop: spacing.md,
+      alignItems: 'center',
     },
     plainText: {
-      fontSize: 40,
+      fontSize: 46,
       fontWeight: '800',
       color: colors.text,
-      lineHeight: 44,
+      lineHeight: 50,
+      textAlign: 'center',
     },
   });
 }

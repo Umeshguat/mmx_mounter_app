@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -7,61 +7,113 @@ import type { ThemeColors } from '../theme/colors';
 
 type Option = { id: string; name: string };
 
+type Anchor = { x: number; y: number; width: number; height: number };
+
 type Props = {
   icon: keyof typeof Ionicons.glyphMap;
   placeholder: string;
   value: Option | null;
   options: Option[];
   onSelect: (option: Option) => void;
+  searchable?: boolean;
 };
 
-export function Dropdown({ icon, placeholder, value, options, onSelect }: Props) {
+export function Dropdown({ icon, placeholder, value, options, onSelect, searchable = false }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const triggerRef = useRef<View>(null);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !query.trim()) return options;
+    const q = query.trim().toLowerCase();
+    return options.filter((option) => option.name.toLowerCase().includes(q));
+  }, [options, query, searchable]);
+
+  const openDropdown = () => {
+    triggerRef.current?.measureInWindow((x, y, width, height) => {
+      setAnchor({ x, y, width, height });
+      setOpen(true);
+    });
+  };
+
+  const closeDropdown = () => {
+    setOpen(false);
+    setQuery('');
+  };
 
   return (
     <>
-      <Pressable style={styles.wrapper} onPress={() => setOpen(true)}>
-        <Ionicons name={icon} size={20} color={colors.textMuted} style={styles.leftIcon} />
-        <Text style={[styles.text, !value && styles.placeholder]} numberOfLines={1}>
-          {value ? value.name : placeholder}
-        </Text>
-        <View style={styles.chevronCircle}>
-          <Ionicons name="chevron-down" size={16} color={colors.white} />
-        </View>
-      </Pressable>
+      <View ref={triggerRef} collapsable={false}>
+        <Pressable style={styles.wrapper} onPress={openDropdown}>
+          <Ionicons name={icon} size={20} color={colors.textMuted} style={styles.leftIcon} />
+          <Text style={[styles.text, !value && styles.placeholder]} numberOfLines={1}>
+            {value ? value.name : placeholder}
+          </Text>
+          <View style={styles.chevronCircle}>
+            <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.white} />
+          </View>
+        </Pressable>
+      </View>
 
       <Modal
         visible={open}
         transparent
-        animationType="slide"
+        animationType="fade"
         statusBarTranslucent
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={closeDropdown}
       >
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>{placeholder}</Text>
-            <FlatList
-              data={options}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.option}
-                  onPress={() => {
-                    onSelect(item);
-                    setOpen(false);
-                  }}
-                >
-                  <Text style={styles.optionText}>{item.name}</Text>
-                  {value?.id === item.id ? (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.primaryStart} />
-                  ) : null}
-                </Pressable>
-              )}
-            />
-          </View>
+        <Pressable style={styles.backdrop} onPress={closeDropdown}>
+          {anchor ? (
+            <View
+              style={[
+                styles.panel,
+                {
+                  top: anchor.y + anchor.height + spacing.xs,
+                  left: anchor.x,
+                  width: anchor.width,
+                },
+              ]}
+              onStartShouldSetResponder={() => true}
+            >
+              {searchable ? (
+                <View style={styles.searchRow}>
+                  <Ionicons name="search" size={16} color={colors.textMuted} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search vendor..."
+                    placeholderTextColor={colors.textFaint}
+                    value={query}
+                    onChangeText={setQuery}
+                    autoFocus
+                  />
+                </View>
+              ) : null}
+              <FlatList
+                data={filteredOptions}
+                keyExtractor={(item) => item.id}
+                keyboardShouldPersistTaps="handled"
+                style={styles.optionList}
+                ListEmptyComponent={searchable ? <Text style={styles.emptyText}>No matches found</Text> : null}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={styles.option}
+                    onPress={() => {
+                      onSelect(item);
+                      closeDropdown();
+                    }}
+                  >
+                    <Text style={styles.optionText}>{item.name}</Text>
+                    {value?.id === item.id ? (
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primaryStart} />
+                    ) : null}
+                  </Pressable>
+                )}
+              />
+            </View>
+          ) : null}
         </Pressable>
       </Modal>
     </>
@@ -101,47 +153,57 @@ function createStyles(colors: ThemeColors) {
     },
     backdrop: {
       flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: 'flex-end',
     },
-    sheet: {
-      width: '100%',
+    panel: {
+      position: 'absolute',
       backgroundColor: colors.surfaceElevated,
-      borderTopLeftRadius: radius.lg,
-      borderTopRightRadius: radius.lg,
-      padding: spacing.lg,
-      maxHeight: '60%',
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      maxHeight: 260,
+      overflow: 'hidden',
       shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: -6 },
-      shadowOpacity: 0.15,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.18,
       shadowRadius: 20,
       elevation: 12,
     },
-    sheetHandle: {
-      alignSelf: 'center',
-      width: 40,
-      height: 4,
-      borderRadius: radius.pill,
-      backgroundColor: colors.border,
-      marginBottom: spacing.md,
+    searchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
-    sheetTitle: {
-      fontSize: 18,
-      fontWeight: '700',
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
       color: colors.text,
-      marginBottom: spacing.md,
+      paddingVertical: 4,
+    },
+    optionList: {
+      flexGrow: 0,
     },
     option: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
     optionText: {
       fontSize: 16,
       color: colors.text,
+    },
+    emptyText: {
+      padding: spacing.md,
+      fontSize: 14,
+      color: colors.textMuted,
+      textAlign: 'center',
     },
   });
 }

@@ -1,14 +1,13 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { TextField } from '../components/TextField';
 import { GradientButton } from '../components/GradientButton';
-import { StreetIllustration } from '../components/StreetIllustration';
+import { CityWorkersIllustration } from '../components/CityWorkersIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Login() {
@@ -35,23 +34,14 @@ export default function Login() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.cloudsRow}>
-          <Ionicons name="cloud-outline" size={54} color={colors.border} />
-          <View style={styles.cloudLine} />
-          <View style={[styles.cloudLine, styles.cloudLineShort]} />
-        </View>
-        <View style={styles.cloudsRowRight}>
-          <Ionicons name="cloud-outline" size={64} color={colors.border} />
-          <View style={styles.cloudLine} />
-          <View style={[styles.cloudLine, styles.cloudLineShort]} />
-        </View>
+        <View style={styles.topSpacer} />
 
         <View style={styles.header}>
           <Text style={styles.title}>Login</Text>
           <Text style={styles.subtitle}>Please fill in the credentials</Text>
         </View>
 
-        <Card elevated tint="surface" style={styles.formCard}>
+        <Card tint="surface" style={styles.formCard}>
           <View style={styles.form}>
             <TextField
               icon="person-outline"
@@ -81,7 +71,9 @@ export default function Login() {
 
         <View style={styles.flexSpacer} />
 
-        <StreetIllustration />
+        <View style={styles.illustrationWrap}>
+          <CityWorkersIllustration width={480} />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -103,24 +95,15 @@ function createStyles(colors: ThemeColors) {
       flexGrow: 1,
       minHeight: spacing.xl,
     },
-    cloudsRow: {
-      alignItems: 'flex-start',
+    topSpacer: {
+      flexGrow: 1,
+      minHeight: spacing.xl,
     },
-    cloudsRowRight: {
-      alignItems: 'flex-end',
-      marginTop: spacing.lg,
-      marginBottom: spacing.xxl,
-    },
-    cloudLine: {
-      width: 70,
-      height: 1.5,
-      borderRadius: 1,
-      backgroundColor: colors.border,
-      marginTop: 6,
-    },
-    cloudLineShort: {
-      width: 36,
-      marginTop: 4,
+    illustrationWrap: {
+      alignItems: 'center',
+      paddingTop: spacing.md,
+      marginHorizontal: -spacing.lg,
+      overflow: 'visible',
     },
     header: {
       marginBottom: spacing.xl,
