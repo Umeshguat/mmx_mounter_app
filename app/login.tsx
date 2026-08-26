@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { radius, spacing } from '../theme/spacing';
+import { ILLUSTRATION_SIZE, radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { TextField } from '../components/TextField';
 import { GradientButton } from '../components/GradientButton';
-import { CityWorkersIllustration } from '../components/CityWorkersIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Login() {
@@ -34,7 +33,13 @@ export default function Login() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.topSpacer} />
+        <View style={styles.illustrationWrap}>
+          <Image
+            source={require('../assets/images/login-lifestyle.png')}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={styles.header}>
           <Text style={styles.title}>Login</Text>
@@ -68,12 +73,6 @@ export default function Login() {
             style={styles.button}
           />
         </Card>
-
-        <View style={styles.flexSpacer} />
-
-        <View style={styles.illustrationWrap}>
-          <CityWorkersIllustration width={480} />
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -88,22 +87,17 @@ function createStyles(colors: ThemeColors) {
     container: {
       flexGrow: 1,
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.xl,
+      paddingTop: spacing.xxl,
       paddingBottom: spacing.lg,
-    },
-    flexSpacer: {
-      flexGrow: 1,
-      minHeight: spacing.xl,
-    },
-    topSpacer: {
-      flexGrow: 1,
-      minHeight: spacing.xl,
     },
     illustrationWrap: {
       alignItems: 'center',
-      paddingTop: spacing.md,
-      marginHorizontal: -spacing.lg,
-      overflow: 'visible',
+      paddingTop: 40,
+      marginBottom: spacing.lg,
+    },
+    illustration: {
+      width: ILLUSTRATION_SIZE,
+      height: ILLUSTRATION_SIZE,
     },
     header: {
       marginBottom: spacing.xl,

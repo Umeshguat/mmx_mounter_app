@@ -13,3 +13,5 @@ export const radius = {
   lg: 18,
   pill: 999,
 } as const;
+
+export const ILLUSTRATION_SIZE = 340;

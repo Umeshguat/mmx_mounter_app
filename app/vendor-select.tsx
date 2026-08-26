@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { spacing } from '../theme/spacing';
+import { ILLUSTRATION_SIZE, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Dropdown } from '../components/Dropdown';
 import { GradientButton } from '../components/GradientButton';
-import { HandshakeIllustration } from '../components/HandshakeIllustration';
 import { useApp } from '../context/AppContext';
 import { vendors } from '../data/mockData';
 import type { Vendor } from '../data/mockData';
@@ -26,7 +25,11 @@ export default function VendorSelect() {
   return (
     <View style={styles.container}>
       <View style={styles.illustrationWrap}>
-        <HandshakeIllustration size={300} />
+        <Image
+          source={require('../assets/images/vendor-handshake.png')}
+          style={styles.illustration}
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.header}>
@@ -66,6 +69,10 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       paddingTop: 40,
       marginBottom: spacing.lg,
+    },
+    illustration: {
+      width: ILLUSTRATION_SIZE,
+      height: ILLUSTRATION_SIZE,
     },
     header: {
       marginBottom: spacing.lg,

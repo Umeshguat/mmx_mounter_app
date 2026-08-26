@@ -1,12 +1,11 @@
 import { useEffect, useMemo } from 'react';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { spacing } from '../theme/spacing';
+import { ILLUSTRATION_SIZE, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { GrowWordmark, MmxWordmark } from '../components/MmxWordmark';
-import { DeskWorkerIllustration } from '../components/DeskWorkerIllustration';
 import { useApp } from '../context/AppContext';
 
 export default function Splash() {
@@ -33,7 +32,11 @@ export default function Splash() {
       <StatusBar hidden />
 
       <View style={styles.topSection}>
-        <DeskWorkerIllustration size={330} />
+        <Image
+          source={require('../assets/images/splash-worker.png')}
+          style={styles.illustration}
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.headingSection}>
@@ -67,6 +70,10 @@ function createStyles(colors: ThemeColors) {
       justifyContent: 'center',
       alignItems: 'center',
       paddingTop: spacing.xl + 40,
+    },
+    illustration: {
+      width: ILLUSTRATION_SIZE,
+      height: ILLUSTRATION_SIZE,
     },
     headingSection: {
       flex: 1,
