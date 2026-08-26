@@ -21,6 +21,8 @@ export interface ThemeColors {
   cardOrangeIcon: string;
   cardRed: string;
   cardRedIcon: string;
+  cardPurple: string;
+  cardPurpleIcon: string;
 
   day: string;
   night: string;
@@ -60,6 +62,8 @@ export const lightColors: ThemeColors = {
   cardOrangeIcon: '#F0982E',
   cardRed: '#FBDFDF',
   cardRedIcon: '#EF4B4B',
+  cardPurple: '#EDE3FB',
+  cardPurpleIcon: '#7C5CFA',
 
   day: '#F0982E',
   night: '#232B3E',
@@ -99,6 +103,8 @@ export const darkColors: ThemeColors = {
   cardOrangeIcon: '#F4A840',
   cardRed: '#3A1B1D',
   cardRedIcon: '#F4645F',
+  cardPurple: '#271D40',
+  cardPurpleIcon: '#A78BFA',
 
   day: '#F4A840',
   night: '#C6CCDA',

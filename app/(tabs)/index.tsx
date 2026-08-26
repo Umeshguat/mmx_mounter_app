@@ -75,6 +75,14 @@ export default function Home() {
           background={colors.cardRed}
           iconColor={colors.cardRedIcon}
         />
+        <StatCard
+          label="Advance Work"
+          value={4}
+          icon="time-outline"
+          background={colors.cardPurple}
+          iconColor={colors.cardPurpleIcon}
+          onPress={() => router.push('/(tabs)/tasks')}
+        />
       </View>
 
       <Text style={styles.sectionTitle}>Recent</Text>

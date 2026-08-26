@@ -62,6 +62,7 @@ export function SidebarMenu({ visible, onClose }: Props) {
 
   const items: MenuItem[] = [
     { id: 'notif', label: 'Notification', icon: 'notifications-outline', onPress: () => go('/notifications') },
+    { id: 'assign', label: 'Assign Task', icon: 'person-add-outline', onPress: () => go('/job-provider-dashboard') },
     { id: 'help', label: 'Help & Support', icon: 'help-circle-outline', onPress: () => go('/help-support') },
     {
       id: 'rate',

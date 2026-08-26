@@ -77,6 +77,52 @@ export const currentUser = {
 export const mediaTypes = ['Hoarding', 'Banner', 'Digital Screen', 'Pole Kiosk'];
 export const lightTypes = ['Front Lit', 'Back Lit', 'Non Lit'];
 
+export type Mounter = {
+  id: string;
+  name: string;
+  phone: string;
+};
+
+export const mounters: Mounter[] = [
+  { id: 'm1', name: 'Rajesh Kumar', phone: '+91 98200 11223' },
+  { id: 'm2', name: 'Suresh Patil', phone: '+91 98220 33445' },
+  { id: 'm3', name: 'Amit Sharma', phone: '+91 98230 55667' },
+  { id: 'm4', name: 'Vikram Singh', phone: '+91 98240 77889' },
+];
+
+export type AssignmentStatus = 'pending' | 'completed';
+
+export type TaskAssignment = {
+  id: string;
+  campaignName: string;
+  location?: string;
+  mounterId: string;
+  mounterName: string;
+  assignedDate: string;
+  status: AssignmentStatus;
+};
+
+export const initialAssignments: TaskAssignment[] = [
+  {
+    id: 'a1',
+    campaignName: 'Seawoods Hoarding',
+    location: 'Seawoods',
+    mounterId: 'm1',
+    mounterName: 'Rajesh Kumar',
+    assignedDate: '21 Dec, 2021',
+    status: 'completed',
+  },
+  {
+    id: 'a2',
+    campaignName: 'Vashi Station Banner',
+    location: 'Vashi Railway Station',
+    mounterId: 'm2',
+    mounterName: 'Suresh Patil',
+    assignedDate: '14 Jan, 2022',
+    status: 'pending',
+  },
+];
+
 export type NotificationItem = {
   id: string;
   title: string;
