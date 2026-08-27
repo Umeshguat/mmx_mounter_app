@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { ILLUSTRATION_SIZE, radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
@@ -22,9 +22,14 @@ export default function Login() {
   const onLogin = async () => {
     if (!canSubmit) return;
     setSubmitting(true);
-    await login(username.trim(), password);
-    setSubmitting(false);
-    router.replace('/vendor-select');
+    try {
+      await login(username.trim(), password);
+      router.replace('/vendor-select');
+    } catch (error) {
+      Alert.alert('Login failed', error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

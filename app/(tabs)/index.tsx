@@ -29,7 +29,7 @@ export default function Home() {
       <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
         <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
           <Ionicons name="menu" size={26} color={colors.text} />
-          <Text style={styles.platformName}>My Media Xchange</Text>
+          <Text style={styles.platformName}>My MediaXchange</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />

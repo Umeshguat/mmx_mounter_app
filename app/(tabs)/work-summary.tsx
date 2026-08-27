@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { router } from 'expo-router';
 import { Modal, Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +7,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { radius, spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { WorkSummaryRow } from '../../components/WorkSummaryRow';
-import { SidebarMenu } from '../../components/SidebarMenu';
 import { workSummary, type WorkSummaryEntry } from '../../data/mockData';
 
 const TAG_OPTIONS: WorkSummaryEntry['tag'][] = ['Note added', 'Location added', 'Image added'];
@@ -15,7 +15,6 @@ export default function WorkSummary() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -47,8 +46,9 @@ export default function WorkSummary() {
     <>
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10}>
-          <Ionicons name="menu" size={26} color={colors.text} />
+        <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Text style={styles.pageName}>Work Summary</Text>
         </Pressable>
         <View style={styles.topBarActions}>
           <Pressable onPress={() => setSearchOpen((o) => !o)} hitSlop={10} style={styles.actionIcon}>
@@ -138,8 +138,6 @@ export default function WorkSummary() {
         </View>
       </Pressable>
     </Modal>
-
-    <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );
 }
@@ -156,6 +154,16 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: spacing.xl,
+    },
+    topBarLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    pageName: {
+      marginLeft: spacing.sm,
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
     },
     topBarActions: {
       flexDirection: 'row',

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { vendors, type Vendor } from '../data/mockData';
+import { loginRequest } from '../services/api';
 
 type AppState = {
   isLoading: boolean;
@@ -32,13 +33,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const persist = async (next: { isLoggedIn: boolean; vendor: Vendor | null }) => {
+  const persist = async (next: { isLoggedIn: boolean; vendor: Vendor | null; token?: string }) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
 
-  const login = async (_username: string, _password: string) => {
+  const login = async (username: string, password: string) => {
+    const result = await loginRequest(username, password);
     setIsLoggedIn(true);
-    await persist({ isLoggedIn: true, vendor });
+    await persist({ isLoggedIn: true, vendor, token: result.token });
   };
 
   const logout = async () => {

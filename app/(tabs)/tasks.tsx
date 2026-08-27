@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { router } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +7,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { TaskListItem } from '../../components/TaskListItem';
-import { SidebarMenu } from '../../components/SidebarMenu';
 import { Badge } from '../../components/Badge';
 import { tasks } from '../../data/mockData';
 
@@ -14,14 +14,13 @@ export default function Tasks() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <>
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10}>
-          <Ionicons name="menu" size={26} color={colors.text} />
+        <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Text style={styles.pageName}>My Task</Text>
         </Pressable>
         <View style={styles.topBarActions}>
           <Ionicons name="search" size={22} color={colors.text} style={styles.actionIcon} />
@@ -55,8 +54,6 @@ export default function Tasks() {
         />
       )}
     </View>
-    <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-    </>
   );
 }
 
@@ -72,6 +69,16 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: spacing.xl,
+    },
+    topBarLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    pageName: {
+      marginLeft: spacing.sm,
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
     },
     topBarActions: {
       flexDirection: 'row',
