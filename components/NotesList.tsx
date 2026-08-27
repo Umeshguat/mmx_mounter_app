@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -45,23 +45,28 @@ export function NotesList({ notes, onAdd, onRemove }: Props) {
       ))}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.sheetTitle}>Add note</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Type a note"
-              placeholderTextColor={colors.textFaint}
-              value={draft}
-              onChangeText={setDraft}
-              multiline
-              autoFocus
-            />
-            <Pressable style={styles.confirmButton} onPress={confirmAdd}>
-              <Text style={styles.confirmText}>Add</Text>
+        <KeyboardAvoidingView
+          style={styles.backdrop}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <Pressable style={styles.backdropTouch} onPress={() => setOpen(false)}>
+            <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.sheetTitle}>Add note</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Type a note"
+                placeholderTextColor={colors.textFaint}
+                value={draft}
+                onChangeText={setDraft}
+                multiline
+                autoFocus
+              />
+              <Pressable style={styles.confirmButton} onPress={confirmAdd}>
+                <Text style={styles.confirmText}>Add</Text>
+              </Pressable>
             </Pressable>
           </Pressable>
-        </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -84,7 +89,7 @@ function createStyles(colors: ThemeColors) {
       width: 28,
       height: 28,
       borderRadius: 8,
-      backgroundColor: colors.text,
+      backgroundColor: colors.primaryStart,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -103,6 +108,9 @@ function createStyles(colors: ThemeColors) {
     backdrop: {
       flex: 1,
       backgroundColor: colors.overlay,
+    },
+    backdropTouch: {
+      flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       padding: spacing.lg,

@@ -5,20 +5,24 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
-import { ScreenHeader } from '../components/ScreenHeader';
-import { MmxWordmark } from '../components/MmxWordmark';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
+import { MmxWordmark, WORDMARK_ALLOCATED_HEIGHT } from '../components/MmxWordmark';
 import { aboutInfo } from '../data/mockData';
 
 export default function About() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useScreenHeaderHeight();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
       <ScreenHeader title="About MMX" />
 
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}>
       <View style={styles.logoBlock}>
-        <MmxWordmark />
+        <View style={styles.logoWrap}>
+          <MmxWordmark />
+        </View>
         <Text style={styles.version}>Version {aboutInfo.version}</Text>
       </View>
 
@@ -34,7 +38,8 @@ export default function About() {
           <Text style={styles.infoText}>{aboutInfo.website}</Text>
         </View>
       </Card>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -51,6 +56,10 @@ function createStyles(colors: ThemeColors) {
     logoBlock: {
       alignItems: 'flex-start',
       marginBottom: spacing.lg,
+    },
+    logoWrap: {
+      height: WORDMARK_ALLOCATED_HEIGHT.md,
+      justifyContent: 'center',
     },
     version: {
       marginTop: spacing.xs,

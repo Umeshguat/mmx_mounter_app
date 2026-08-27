@@ -37,6 +37,7 @@ export interface ThemeColors {
   white: string;
   overlay: string;
   shadow: string;
+  headerOverlay: string;
 }
 
 export const lightColors: ThemeColors = {
@@ -78,6 +79,7 @@ export const lightColors: ThemeColors = {
   white: '#FFFFFF',
   overlay: 'rgba(20, 24, 40, 0.4)',
   shadow: '#1B2130',
+  headerOverlay: 'rgba(255, 255, 255, 0.78)',
 };
 
 export const darkColors: ThemeColors = {
@@ -119,6 +121,7 @@ export const darkColors: ThemeColors = {
   white: '#FFFFFF',
   overlay: 'rgba(0, 0, 0, 0.6)',
   shadow: '#000000',
+  headerOverlay: 'rgba(20, 25, 38, 0.78)',
 };
 
 export const colors = lightColors;

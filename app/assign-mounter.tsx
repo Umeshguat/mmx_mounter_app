@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
@@ -8,7 +8,7 @@ import { Card } from '../components/Card';
 import { TextField } from '../components/TextField';
 import { Dropdown } from '../components/Dropdown';
 import { GradientButton } from '../components/GradientButton';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { useAssignments } from '../context/AssignmentContext';
 import { mounters } from '../data/mockData';
 
@@ -17,6 +17,7 @@ const mounterOptions = mounters.map((m) => ({ id: m.id, name: m.name }));
 export default function AssignMounter() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useScreenHeaderHeight();
   const { addAssignment } = useAssignments();
 
   const [campaignName, setCampaignName] = useState('');
@@ -42,9 +43,17 @@ export default function AssignMounter() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
       <ScreenHeader title="Assign Mounter" />
 
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+        keyboardShouldPersistTaps="handled"
+      >
       <Card tint="muted" style={styles.section}>
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>Campaign / task name</Text>
@@ -87,7 +96,9 @@ export default function AssignMounter() {
         disabled={!canSubmit}
         style={styles.submitButton}
       />
-    </ScrollView>
+      </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -96,6 +107,9 @@ function createStyles(colors: ThemeColors) {
     container: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    flex: {
+      flex: 1,
     },
     content: {
       paddingHorizontal: spacing.lg,

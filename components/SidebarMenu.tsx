@@ -8,7 +8,7 @@ import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
 import { currentUser } from '../data/mockData';
 import { RateUsModal } from './RateUsModal';
-import { MmxWordmark } from './MmxWordmark';
+import { MmxWordmark, WORDMARK_ALLOCATED_HEIGHT } from './MmxWordmark';
 import { ToggleSwitch } from './ToggleSwitch';
 
 type MenuItem = {
@@ -88,7 +88,9 @@ export function SidebarMenu({ visible, onClose }: Props) {
 
         <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
           <View style={styles.header}>
-            <MmxWordmark size="sm" />
+            <View style={styles.logoWrap}>
+              <MmxWordmark size="sm" />
+            </View>
 
             <View style={styles.avatarWrap}>
               <View style={styles.avatar}>
@@ -159,6 +161,10 @@ function createStyles(colors: ThemeColors) {
     },
     header: {
       marginBottom: spacing.lg,
+    },
+    logoWrap: {
+      height: WORDMARK_ALLOCATED_HEIGHT.sm,
+      justifyContent: 'center',
     },
     avatarWrap: {
       alignSelf: 'flex-start',

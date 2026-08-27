@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { faqs, supportContact, type FaqItem } from '../data/mockData';
 
@@ -35,11 +35,16 @@ function FaqRow({
 export default function HelpSupport() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useScreenHeaderHeight();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
       <ScreenHeader title="Help & Support" />
 
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+        showsVerticalScrollIndicator={false}
+      >
       <Card tint="muted" style={styles.contactCard}>
         <View style={styles.contactRow}>
           <Ionicons name="call-outline" size={18} color={colors.primaryStart} />
@@ -61,7 +66,8 @@ export default function HelpSupport() {
           <FaqRow key={item.id} item={item} colors={colors} styles={styles} isLast={index === faqs.length - 1} />
         ))}
       </Card>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

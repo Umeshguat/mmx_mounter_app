@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useMemo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -20,26 +20,43 @@ export function ImagesList({ images, onAdd }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const pickImage = async () => {
+  const addFromResult = (result: ImagePicker.ImagePickerResult) => {
+    if (result.canceled || result.assets.length === 0) return;
+    const asset = result.assets[0];
+    const kb = asset.fileSize ? Math.max(1, Math.round(asset.fileSize / 1024)) : 20;
+    onAdd({ uri: asset.uri, sizeLabel: `Size: ${kb}KB` });
+  };
+
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
+    addFromResult(result);
+  };
+
+  const pickFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.7,
     });
-    if (result.canceled || result.assets.length === 0) return;
+    addFromResult(result);
+  };
 
-    const asset = result.assets[0];
-    const kb = asset.fileSize ? Math.max(1, Math.round(asset.fileSize / 1024)) : 20;
-    onAdd({ uri: asset.uri, sizeLabel: `Size: ${kb}KB` });
+  const addImage = () => {
+    Alert.alert('Add Image', 'Choose an option', [
+      { text: 'Take Photo', onPress: takePhoto },
+      { text: 'Choose from Gallery', onPress: pickFromGallery },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   return (
     <View>
       <View style={styles.header}>
         <Text style={styles.label}>Add images</Text>
-        <Pressable style={styles.addButton} onPress={pickImage}>
+        <Pressable style={styles.addButton} onPress={addImage}>
           <Ionicons name="add" size={18} color={colors.white} />
         </Pressable>
       </View>
@@ -73,7 +90,7 @@ function createStyles(colors: ThemeColors) {
       width: 28,
       height: 28,
       borderRadius: 8,
-      backgroundColor: colors.text,
+      backgroundColor: colors.primaryStart,
       alignItems: 'center',
       justifyContent: 'center',
     },

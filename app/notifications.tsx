@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { notifications, type NotificationItem } from '../data/mockData';
 
@@ -29,6 +29,7 @@ function Row({ item, colors, styles }: { item: NotificationItem; colors: ThemeCo
 export default function Notifications() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useScreenHeaderHeight();
 
   return (
     <View style={styles.container}>
@@ -38,7 +39,7 @@ export default function Notifications() {
         data={notifications}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <Row item={item} colors={colors} styles={styles} />}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingTop: headerHeight + spacing.lg }]}
         showsVerticalScrollIndicator={false}
       />
     </View>

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -18,9 +18,12 @@ type Props = {
   searchable?: boolean;
 };
 
+const PANEL_MAX_HEIGHT = 260;
+
 export function Dropdown({ icon, placeholder, value, options, onSelect, searchable = false }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { height: windowHeight } = useWindowDimensions();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [anchor, setAnchor] = useState<Anchor | null>(null);
@@ -70,11 +73,9 @@ export function Dropdown({ icon, placeholder, value, options, onSelect, searchab
             <View
               style={[
                 styles.panel,
-                {
-                  top: anchor.y + anchor.height + spacing.xs,
-                  left: anchor.x,
-                  width: anchor.width,
-                },
+                anchor.y + anchor.height + PANEL_MAX_HEIGHT + spacing.lg > windowHeight
+                  ? { bottom: windowHeight - anchor.y + spacing.xs, left: anchor.x, width: anchor.width }
+                  : { top: anchor.y + anchor.height + spacing.xs, left: anchor.x, width: anchor.width },
               ]}
               onStartShouldSetResponder={() => true}
             >
@@ -160,7 +161,7 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.border,
-      maxHeight: 260,
+      maxHeight: PANEL_MAX_HEIGHT,
       overflow: 'hidden',
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 8 },

@@ -25,6 +25,14 @@ const SIZE_MAP = {
   lg: { width: 208, height: 64 },
 } as const;
 
+const BADGE_VERTICAL_PADDING = spacing.sm;
+
+export const WORDMARK_ALLOCATED_HEIGHT: Record<keyof typeof SIZE_MAP, number> = {
+  sm: SIZE_MAP.sm.height + BADGE_VERTICAL_PADDING * 2,
+  md: SIZE_MAP.md.height + BADGE_VERTICAL_PADDING * 2,
+  lg: SIZE_MAP.lg.height + BADGE_VERTICAL_PADDING * 2,
+};
+
 type MmxWordmarkProps = {
   size?: keyof typeof SIZE_MAP;
 };
@@ -54,7 +62,7 @@ function createBadgeStyles(colors: ThemeColors) {
     badge: {
       backgroundColor: colors.white,
       borderRadius: radius.md,
-      paddingVertical: spacing.sm,
+      paddingVertical: BADGE_VERTICAL_PADDING,
       paddingHorizontal: spacing.md,
       alignSelf: 'flex-start',
     },

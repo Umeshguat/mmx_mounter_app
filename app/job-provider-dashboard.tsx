@@ -8,13 +8,14 @@ import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { GradientButton } from '../components/GradientButton';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { useAssignments } from '../context/AssignmentContext';
 import type { TaskAssignment } from '../data/mockData';
 
 export default function JobProviderDashboard() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useScreenHeaderHeight();
   const { assignments, setStatus } = useAssignments();
 
   const completedCount = assignments.filter((a) => a.status === 'completed').length;
@@ -26,14 +27,14 @@ export default function JobProviderDashboard() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Job Provider" />
+
       <FlatList
         data={assignments}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
         ListHeaderComponent={
           <>
-            <ScreenHeader title="Job Provider" />
-
             <View style={styles.summaryRow}>
               <Card tint="muted" style={styles.summaryCard}>
                 <Text style={styles.summaryValue}>{pendingCount}</Text>

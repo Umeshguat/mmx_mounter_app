@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -35,7 +35,11 @@ export function RateUsModal({ visible, onClose }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <Pressable style={styles.backdrop} onPress={handleClose}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Pressable style={styles.backdropTouch} onPress={handleClose}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
           <Text style={styles.title}>Rate Us</Text>
           <Text style={styles.subtitle}>How was your experience with MMX?</Text>
@@ -64,7 +68,8 @@ export function RateUsModal({ visible, onClose }: Props) {
 
           <GradientButton label="Submit" onPress={handleSubmit} disabled={rating === 0} />
         </Pressable>
-      </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -74,6 +79,9 @@ function createStyles(colors: ThemeColors) {
     backdrop: {
       flex: 1,
       backgroundColor: colors.overlay,
+    },
+    backdropTouch: {
+      flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       padding: spacing.lg,

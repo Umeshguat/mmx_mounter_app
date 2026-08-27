@@ -13,22 +13,23 @@ import { SidebarMenu } from '../../components/SidebarMenu';
 import { useApp } from '../../context/AppContext';
 import { currentUser, recentActivity } from '../../data/mockData';
 
+const HEADER_CONTENT_HEIGHT = 56;
+
 export default function Home() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { vendor } = useApp();
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const headerHeight = insets.top + HEADER_CONTENT_HEIGHT;
 
   return (
     <>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
-    >
-      <View style={styles.topBar}>
-        <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10}>
+    <View style={styles.container}>
+      <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
+        <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
           <Ionicons name="menu" size={26} color={colors.text} />
+          <Text style={styles.platformName}>My Media Xchange</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
@@ -38,6 +39,10 @@ export default function Home() {
         </Pressable>
       </View>
 
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+      >
       <Text style={styles.greeting}>Hello, {currentUser.firstName} !</Text>
       <Text style={styles.subGreeting}>
         Welcome back{vendor ? ` · ${vendor.name}` : ''}
@@ -104,7 +109,8 @@ export default function Home() {
           </Card>
         </Pressable>
       ))}
-    </ScrollView>
+      </ScrollView>
+    </View>
     <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );
@@ -116,15 +122,36 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: colors.background,
     },
+    scroll: {
+      flex: 1,
+    },
     content: {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xl,
     },
     topBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: spacing.xl,
+      paddingHorizontal: spacing.lg,
+      backgroundColor: colors.headerOverlay,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    topBarLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    platformName: {
+      marginLeft: spacing.sm,
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
     },
     notifDot: {
       position: 'absolute',

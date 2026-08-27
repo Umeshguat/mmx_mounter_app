@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
@@ -12,7 +12,7 @@ import { GradientButton } from '../components/GradientButton';
 import { NotesList } from '../components/NotesList';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { Card } from '../components/Card';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { tasks, vendors, mediaTypes, lightTypes, type PhotoType } from '../data/mockData';
 
 const mediaTypeOptions = mediaTypes.map((name, index) => ({ id: `mt-${index}`, name }));
@@ -21,6 +21,7 @@ const lightTypeOptions = lightTypes.map((name, index) => ({ id: `lt-${index}`, n
 export default function TaskForm() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useScreenHeaderHeight();
 
   const { taskId } = useLocalSearchParams<{ taskId?: string }>();
   const taskIndex = useMemo(() => tasks.findIndex((t) => t.id === taskId), [taskId]);
@@ -47,9 +48,17 @@ export default function TaskForm() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="Task" />
+      <ScreenHeader title="Task" />
 
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <Card tint="muted" style={styles.section}>
           <Field label="Campaign name" styles={styles}>
             <TextField icon="pricetag-outline" placeholder="Enter campaign name" value={campaignName} onChangeText={setCampaignName} />
@@ -118,6 +127,7 @@ export default function TaskForm() {
 
         <GradientButton label="Submit" onPress={onSubmit} style={styles.submitButton} />
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -146,6 +156,9 @@ function createStyles(colors: ThemeColors) {
     container: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    flex: {
+      flex: 1,
     },
     content: {
       paddingHorizontal: spacing.lg,
