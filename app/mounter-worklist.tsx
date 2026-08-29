@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -88,24 +88,27 @@ export default function MounterWorklist() {
             const date = fieldOf(item, ['start_date', 'date', 'display_date', 'addedon']);
             const status = fieldOf(item, ['cart_status', 'status']);
             const isDone = status === 'completed' || status === 'done';
+            const cartId = fieldOf(item, ['cart_id', 'id']);
 
             return (
-              <Card elevated padding={0} style={styles.row}>
-                <View style={styles.iconBadge}>
-                  <Ionicons name="document-text-outline" size={20} color={colors.primaryStart} />
-                </View>
-                <View style={styles.info}>
-                  <Text style={styles.title} numberOfLines={1}>
-                    {title}
-                  </Text>
-                  <Text style={styles.subtitle} numberOfLines={1}>
-                    {subtitle ?? date}
-                  </Text>
-                </View>
-                <View style={[styles.statusBadge, { backgroundColor: isDone ? colors.success : colors.day }]}>
-                  <Ionicons name={isDone ? 'checkmark' : 'time-outline'} size={18} color={colors.white} />
-                </View>
-              </Card>
+              <Pressable onPress={() => cartId && router.push({ pathname: '/task-detail', params: { cartId } })}>
+                <Card elevated padding={0} style={styles.row}>
+                  <View style={styles.iconBadge}>
+                    <Ionicons name="document-text-outline" size={20} color={colors.primaryStart} />
+                  </View>
+                  <View style={styles.info}>
+                    <Text style={styles.title} numberOfLines={1}>
+                      {title}
+                    </Text>
+                    <Text style={styles.subtitle} numberOfLines={1}>
+                      {subtitle ?? date}
+                    </Text>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: isDone ? colors.success : colors.day }]}>
+                    <Ionicons name={isDone ? 'checkmark' : 'time-outline'} size={18} color={colors.white} />
+                  </View>
+                </Card>
+              </Pressable>
             );
           }}
           ListEmptyComponent={<Text style={styles.emptyText}>No records found.</Text>}

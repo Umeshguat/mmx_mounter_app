@@ -1,5 +1,3 @@
-export type PhotoType = 'day' | 'night';
-
 export type Vendor = {
   id: string;
   name: string;
@@ -9,21 +7,6 @@ export const vendors: Vendor[] = [
   { id: 'v1', name: 'Ambika Advertising' },
   { id: 'v2', name: 'Skyline Media' },
   { id: 'v3', name: 'Urban Outdoor Media' },
-];
-
-export type Task = {
-  id: string;
-  title: string;
-  date: string;
-  photoTypes: PhotoType[];
-  bannerSize?: string;
-  location?: string;
-};
-
-export const tasks: Task[] = [
-  { id: 't1', title: 'Seawoods', date: '21 Dec, 2021', photoTypes: ['day', 'night'], bannerSize: '16X20' },
-  { id: 't2', title: 'Ambika Yogkutir Towards Thane station', date: '14 Jan, 2022', photoTypes: ['day'], bannerSize: '20X18' },
-  { id: 't3', title: 'Vashi Railway Station', date: '21 Dec, 2021', photoTypes: ['night'], bannerSize: '20X14' },
 ];
 
 export type WorkSummaryEntry = {
@@ -68,36 +51,6 @@ export const recentActivity: RecentActivity[] = [
   { id: 'r1', title: 'Web Application Development', date: '03 Jan, 2022', icon: 'calendar', color: 'green' },
   { id: 'r2', title: 'Mobile Application', date: '21 Dec, 2021', icon: 'monitor', color: 'orange' },
 ];
-
-export const mediaTypes = ['Hoarding', 'Banner', 'Digital Screen', 'Pole Kiosk'];
-export const lightTypes = ['Front Lit', 'Back Lit', 'Non Lit'];
-
-export type Mounter = {
-  id: string;
-  name: string;
-  phone: string;
-};
-
-export const mounters: Mounter[] = [
-  { id: 'm1', name: 'Rajesh Kumar', phone: '+91 98200 11223' },
-  { id: 'm2', name: 'Suresh Patil', phone: '+91 98220 33445' },
-  { id: 'm3', name: 'Amit Sharma', phone: '+91 98230 55667' },
-  { id: 'm4', name: 'Vikram Singh', phone: '+91 98240 77889' },
-];
-
-export type AssignmentStatus = 'pending' | 'completed';
-
-export type TaskAssignment = {
-  id: string;
-  campaignName: string;
-  location?: string;
-  mounterId: string;
-  mounterName: string;
-  assignedDate: string;
-  status: AssignmentStatus;
-};
-
-export const initialAssignments: TaskAssignment[] = [];
 
 export type NotificationItem = {
   id: string;

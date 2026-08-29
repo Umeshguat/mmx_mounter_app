@@ -43,7 +43,7 @@ function createStyles(colors: ThemeColors) {
       borderWidth: 1,
       borderColor: colors.border,
       paddingHorizontal: spacing.md,
-      height: 56,
+      minHeight: 56,
     },
     leftIcon: {
       marginRight: spacing.sm,

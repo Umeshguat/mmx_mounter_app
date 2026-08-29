@@ -1,45 +1,48 @@
-import { useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
-import { TextField } from '../components/TextField';
 import { Dropdown } from '../components/Dropdown';
 import { GradientButton } from '../components/GradientButton';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
-import { useAssignments } from '../context/AssignmentContext';
-import { mounters } from '../data/mockData';
-
-const mounterOptions = mounters.map((m) => ({ id: m.id, name: m.name }));
+import { assignMounter, getMounters } from '../services/api';
 
 export default function AssignMounter() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
-  const { addAssignment } = useAssignments();
 
-  const [campaignName, setCampaignName] = useState('');
-  const [location, setLocation] = useState('');
+  const { cartId, title, subtitle } = useLocalSearchParams<{ cartId: string; title?: string; subtitle?: string }>();
+
+  const [mounterOptions, setMounterOptions] = useState<{ id: string; name: string }[]>([]);
+  const [mountersError, setMountersError] = useState<string | null>(null);
   const [mounter, setMounter] = useState<{ id: string; name: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = campaignName.trim().length > 0 && !!mounter;
+  useEffect(() => {
+    getMounters()
+      .then((list) => setMounterOptions(list.map((m) => ({ id: String(m.mounterId), name: m.mounterName }))))
+      .catch((err) => setMountersError(err instanceof Error ? err.message : 'Could not load mounters.'));
+  }, []);
+
+  const canSubmit = !!cartId && !!mounter;
 
   const onAssign = async () => {
-    if (!canSubmit || !mounter) return;
+    if (!canSubmit || !mounter || !cartId) return;
     setSubmitting(true);
-    await addAssignment({
-      campaignName: campaignName.trim(),
-      location: location.trim() || undefined,
-      mounterId: mounter.id,
-      mounterName: mounter.name,
-    });
-    setSubmitting(false);
-    Alert.alert('Task assigned', `${campaignName.trim()} has been assigned to ${mounter.name}.`, [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    try {
+      await assignMounter(cartId, mounter.id);
+      Alert.alert('Task assigned', `${title ?? 'This task'} has been assigned to ${mounter.name}.`, [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (err) {
+      Alert.alert('Could not assign mounter', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -55,26 +58,11 @@ export default function AssignMounter() {
         keyboardShouldPersistTaps="handled"
       >
       <Card tint="muted" style={styles.section}>
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Campaign / task name</Text>
-          <TextField
-            icon="pricetag-outline"
-            placeholder="Enter campaign name"
-            value={campaignName}
-            onChangeText={setCampaignName}
-          />
-        </View>
+        <Text style={styles.taskTitle}>{title ?? `Cart #${cartId}`}</Text>
+        {subtitle ? <Text style={styles.taskSubtitle}>{subtitle}</Text> : null}
+      </Card>
 
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Location</Text>
-          <TextField
-            icon="location-outline"
-            placeholder="Enter location (optional)"
-            value={location}
-            onChangeText={setLocation}
-          />
-        </View>
-
+      <Card tint="muted" style={styles.section}>
         <View style={styles.fieldLast}>
           <Text style={styles.fieldLabel}>Assign to mounter</Text>
           <Dropdown
@@ -85,6 +73,7 @@ export default function AssignMounter() {
             onSelect={setMounter}
             searchable
           />
+          {mountersError ? <Text style={styles.errorText}>{mountersError}</Text> : null}
         </View>
       </Card>
 
@@ -118,11 +107,23 @@ function createStyles(colors: ThemeColors) {
     section: {
       marginBottom: spacing.lg,
     },
-    field: {
-      marginBottom: spacing.md,
+    taskTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    taskSubtitle: {
+      marginTop: 2,
+      fontSize: 14,
+      color: colors.textMuted,
     },
     fieldLast: {
       marginBottom: 0,
+    },
+    errorText: {
+      marginTop: spacing.xs,
+      fontSize: 13,
+      color: colors.danger,
     },
     fieldLabel: {
       fontSize: 14,

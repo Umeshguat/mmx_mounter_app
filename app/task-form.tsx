@@ -1,152 +1,129 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { TextField } from '../components/TextField';
-import { Dropdown } from '../components/Dropdown';
-import { DateField } from '../components/DateField';
 import { GradientButton } from '../components/GradientButton';
-import { NotesList } from '../components/NotesList';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { Card } from '../components/Card';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
-import { tasks, vendors, mediaTypes, lightTypes, type PhotoType } from '../data/mockData';
-
-const mediaTypeOptions = mediaTypes.map((name, index) => ({ id: `mt-${index}`, name }));
-const lightTypeOptions = lightTypes.map((name, index) => ({ id: `lt-${index}`, name }));
+import { getTaskDetail, updateTask } from '../services/api';
 
 export default function TaskForm() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
 
-  const { taskId } = useLocalSearchParams<{ taskId?: string }>();
-  const taskIndex = useMemo(() => tasks.findIndex((t) => t.id === taskId), [taskId]);
-  const task = taskIndex >= 0 ? tasks[taskIndex] : null;
+  const { cartId } = useLocalSearchParams<{ cartId?: string }>();
 
-  const [campaignName, setCampaignName] = useState(task?.title ?? '');
-  const [media, setMedia] = useState('');
-  const [mediaType, setMediaType] = useState<{ id: string; name: string } | null>(null);
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [vendor, setVendor] = useState<{ id: string; name: string } | null>(null);
-  const [lightType, setLightType] = useState<{ id: string; name: string } | null>(null);
-  const [size, setSize] = useState(task?.bannerSize ?? '');
-  const [quantity, setQuantity] = useState('');
-  const [photoType, setPhotoType] = useState<PhotoType>('day');
-  const [notes, setNotes] = useState<string[]>(
-    task ? [`Size of banner is ${task.bannerSize ?? ''}`] : []
-  );
-  const [images, setImages] = useState<PickedImage[]>([]);
+  const [task, setTask] = useState<Record<string, any> | null>(null);
+  const [loading, setLoading] = useState(!!cartId);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const onSubmit = () => {
-    Alert.alert('Submitted', 'Task details have been saved.', [{ text: 'OK', onPress: () => router.back() }]);
+  const [remarks, setRemarks] = useState('');
+  const [mountingPhotos, setMountingPhotos] = useState<PickedImage[]>([]);
+  const [removalPhotos, setRemovalPhotos] = useState<PickedImage[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!cartId) return;
+    setLoading(true);
+    setLoadError(null);
+    getTaskDetail(cartId)
+      .then(setTask)
+      .catch((err) => setLoadError(err instanceof Error ? err.message : 'Could not load task details.'))
+      .finally(() => setLoading(false));
+  }, [cartId]);
+
+  const canSubmit = remarks.trim().length > 0 && (mountingPhotos.length > 0 || removalPhotos.length > 0);
+
+  const onSubmit = async () => {
+    if (!cartId || !canSubmit) return;
+    setSubmitting(true);
+    try {
+      await updateTask(cartId, { remarks: remarks.trim(), mountingPhotos, removalPhotos });
+      Alert.alert('Task updated', 'Your remarks and photos have been submitted.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (err) {
+      Alert.alert('Could not update task', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (!cartId) {
+    return (
+      <View style={styles.container}>
+        <ScreenHeader title="Complete Task" />
+        <View style={[styles.emptyState, { marginTop: headerHeight + spacing.lg }]}>
+          <Text style={styles.emptyText}>Pick a task from My Task to add remarks and photos.</Text>
+          <GradientButton label="Go to My Task" onPress={() => router.push('/(tabs)/tasks')} style={styles.emptyButton} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Task" />
+      <ScreenHeader title="Complete Task" />
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Card tint="muted" style={styles.section}>
-          <Field label="Campaign name" styles={styles}>
-            <TextField icon="pricetag-outline" placeholder="Enter campaign name" value={campaignName} onChangeText={setCampaignName} />
-          </Field>
-
-          <Field label="Media" styles={styles}>
-            <TextField icon="images-outline" placeholder="Enter media name" value={media} onChangeText={setMedia} />
-          </Field>
-
-          <Field label="Media type" styles={styles} last>
-            <Dropdown icon="layers-outline" placeholder="Select media type" value={mediaType} options={mediaTypeOptions} onSelect={setMediaType} searchable />
-          </Field>
-        </Card>
-
-        <Card tint="muted" style={styles.section}>
-          <Field label="Display start date" styles={styles}>
-            <DateField placeholder="Enter display start date" value={startDate} onChange={setStartDate} />
-          </Field>
-
-          <Field label="Display end date" styles={styles} last>
-            <DateField placeholder="Enter display end date" value={endDate} onChange={setEndDate} />
-          </Field>
-        </Card>
-
-        <Card tint="muted" style={styles.section}>
-          <Field label="Vendor" styles={styles}>
-            <Dropdown icon="business-outline" placeholder="Select vendor" value={vendor} options={vendors} onSelect={setVendor} searchable />
-          </Field>
-
-          <Field label="Light type" styles={styles}>
-            <Dropdown icon="bulb-outline" placeholder="Select light type" value={lightType} options={lightTypeOptions} onSelect={setLightType} searchable />
-          </Field>
-
-          <Field label="Size" styles={styles}>
-            <TextField icon="resize-outline" placeholder="Enter size" value={size} onChangeText={setSize} />
-          </Field>
-
-          <Field label="Quantity" styles={styles} last>
-            <TextField icon="calculator-outline" placeholder="Enter quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
-          </Field>
-        </Card>
-
-        <Text style={styles.sectionLabel}>Photo type</Text>
-        <View style={styles.photoTypeRow}>
-          <Pressable
-            style={[styles.photoTypeButton, { backgroundColor: colors.day }, photoType !== 'day' && styles.photoTypeInactive]}
-            onPress={() => setPhotoType('day')}
+      {loading ? (
+        <ActivityIndicator color={colors.primaryStart} style={[styles.loading, { marginTop: headerHeight + spacing.lg }]} />
+      ) : loadError ? (
+        <Text style={[styles.errorText, { marginTop: headerHeight + spacing.lg }]}>{loadError}</Text>
+      ) : (
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView
+            contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <Ionicons name="sunny" size={22} color={colors.white} />
-          </Pressable>
-          <Pressable
-            style={[styles.photoTypeButton, { backgroundColor: colors.night }, photoType !== 'night' && styles.photoTypeInactive]}
-            onPress={() => setPhotoType('night')}
-          >
-            <Ionicons name="moon" size={22} color={colors.white} />
-          </Pressable>
-        </View>
+            <Card tint="muted" style={styles.section}>
+              <Text style={styles.taskTitle}>{task?.media_name ?? task?.campaign_name ?? `Cart #${cartId}`}</Text>
+              {task?.campaign_name ? <Text style={styles.taskSubtitle}>{task.campaign_name}</Text> : null}
+              {task?.start_date || task?.end_date ? (
+                <Text style={styles.taskSubtitle}>
+                  {task?.start_date ?? ''}
+                  {task?.start_date && task?.end_date ? ' - ' : ''}
+                  {task?.end_date ?? ''}
+                </Text>
+              ) : null}
+            </Card>
 
-        <View style={styles.divider} />
+            <Card tint="muted" style={styles.section}>
+              <Text style={styles.fieldLabel}>Remarks</Text>
+              <TextField
+                icon="chatbubble-ellipses-outline"
+                placeholder="Enter remarks for this visit"
+                value={remarks}
+                onChangeText={setRemarks}
+                multiline
+                numberOfLines={3}
+                style={styles.remarksInput}
+              />
+            </Card>
 
-        <NotesList notes={notes} onAdd={(note) => setNotes((prev) => [...prev, note])} onRemove={(index) => setNotes((prev) => prev.filter((_, i) => i !== index))} />
+            <Card tint="muted" style={styles.section}>
+              <ImagesList label="Mounting Photos" images={mountingPhotos} onAdd={(image) => setMountingPhotos((prev) => [...prev, image])} />
+            </Card>
 
-        <View style={styles.divider} />
+            <Card tint="muted" style={styles.section}>
+              <ImagesList label="Removal Photos" images={removalPhotos} onAdd={(image) => setRemovalPhotos((prev) => [...prev, image])} />
+            </Card>
 
-        <ImagesList images={images} onAdd={(image) => setImages((prev) => [...prev, image])} />
-
-        <GradientButton label="Submit" onPress={onSubmit} style={styles.submitButton} />
-      </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
-  );
-}
-
-function Field({
-  label,
-  children,
-  styles,
-  last,
-}: {
-  label: string;
-  children: ReactNode;
-  styles: ReturnType<typeof createStyles>;
-  last?: boolean;
-}) {
-  return (
-    <View style={[styles.field, last && styles.fieldLast]}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      {children}
+            <GradientButton
+              label="Submit"
+              onPress={onSubmit}
+              loading={submitting}
+              disabled={!canSubmit}
+              style={styles.submitButton}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
     </View>
   );
 }
@@ -164,14 +141,41 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xxl,
     },
+    loading: {
+      alignSelf: 'center',
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.danger,
+      textAlign: 'center',
+      paddingHorizontal: spacing.lg,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+    },
+    emptyText: {
+      fontSize: 15,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: spacing.lg,
+    },
+    emptyButton: {
+      alignSelf: 'stretch',
+    },
     section: {
       marginBottom: spacing.md,
     },
-    field: {
-      marginBottom: spacing.md,
+    taskTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.text,
     },
-    fieldLast: {
-      marginBottom: 0,
+    taskSubtitle: {
+      marginTop: 2,
+      fontSize: 14,
+      color: colors.textMuted,
     },
     fieldLabel: {
       fontSize: 14,
@@ -179,31 +183,10 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       marginBottom: spacing.xs,
     },
-    sectionLabel: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: spacing.sm,
-    },
-    photoTypeRow: {
-      flexDirection: 'row',
-      marginBottom: spacing.md,
-    },
-    photoTypeButton: {
-      width: 48,
-      height: 48,
-      borderRadius: 0,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: spacing.sm,
-    },
-    photoTypeInactive: {
-      opacity: 0.4,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: colors.border,
-      marginVertical: spacing.md,
+    remarksInput: {
+      height: 80,
+      paddingTop: spacing.sm,
+      textAlignVertical: 'top',
     },
     submitButton: {
       marginTop: spacing.lg,

@@ -9,7 +9,7 @@ import { GrowWordmark, MmxWordmark } from '../components/MmxWordmark';
 import { useApp } from '../context/AppContext';
 
 export default function Splash() {
-  const { isLoading, isLoggedIn, vendor } = useApp();
+  const { isLoading, isLoggedIn, vendor, userProfile } = useApp();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -18,14 +18,23 @@ export default function Splash() {
     const timer = setTimeout(() => {
       if (!isLoggedIn) {
         router.replace('/login');
-      } else if (!vendor) {
-        router.replace('/vendor-select');
+      } else if (userProfile?.loginUserType === '12') {
+        // Job-provider (other vendor): always lands back on their own
+        // dashboard, never the mounter tabs — matching login.tsx's fresh-login routing.
+        if (!vendor) {
+          router.replace('/vendor-select');
+        } else {
+          router.replace({
+            pathname: '/job-provider-dashboard',
+            params: { vendorId: vendor.id, vendorName: vendor.name },
+          });
+        }
       } else {
         router.replace('/(tabs)');
       }
     }, 1400);
     return () => clearTimeout(timer);
-  }, [isLoading, isLoggedIn, vendor]);
+  }, [isLoading, isLoggedIn, vendor, userProfile]);
 
   return (
     <View style={styles.container}>

@@ -14,9 +14,10 @@ export type PickedImage = {
 type Props = {
   images: PickedImage[];
   onAdd: (image: PickedImage) => void;
+  label?: string;
 };
 
-export function ImagesList({ images, onAdd }: Props) {
+export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -55,7 +56,7 @@ export function ImagesList({ images, onAdd }: Props) {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.label}>Add images</Text>
+        <Text style={styles.label}>{label}</Text>
         <Pressable style={styles.addButton} onPress={addImage}>
           <Ionicons name="add" size={18} color={colors.white} />
         </Pressable>

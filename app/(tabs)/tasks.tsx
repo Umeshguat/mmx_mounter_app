@@ -1,19 +1,36 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
-import { spacing } from '../../theme/spacing';
+import { radius, spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
-import { TaskListItem } from '../../components/TaskListItem';
+import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
-import { tasks } from '../../data/mockData';
+import { getMounterWorklist, type MounterWorklistType } from '../../services/api';
+
+const OVERVIEW_TYPES: MounterWorklistType[] = ['today', 'pending', 'advance'];
 
 export default function Tasks() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
+
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    Promise.all(OVERVIEW_TYPES.map((type) => getMounterWorklist(type, 1)))
+      .then((results) => {
+        setItems(results.flatMap((r) => r.items));
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load tasks.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
@@ -33,9 +50,13 @@ export default function Tasks() {
         </View>
       </View>
 
-      <Text style={styles.subtitle}>{tasks.length} tasks</Text>
+      <Text style={styles.subtitle}>{items.length} tasks</Text>
 
-      {tasks.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator color={colors.primaryStart} style={styles.loading} />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : items.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconWrap}>
             <Ionicons name="calendar-outline" size={32} color={colors.textFaint} />
@@ -45,9 +66,23 @@ export default function Tasks() {
         </View>
       ) : (
         <FlatList
-          data={tasks}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TaskListItem task={item} />}
+          data={items}
+          keyExtractor={(item, index) => String(item.cart_id ?? index)}
+          renderItem={({ item }) => (
+            <Pressable onPress={() => router.push({ pathname: '/task-detail', params: { cartId: item.cart_id } })}>
+              <Card elevated padding={0} style={styles.row}>
+                <View style={styles.iconBadge}>
+                  <Ionicons name="document-text-outline" size={20} color={colors.primaryStart} />
+                </View>
+                <View style={styles.info}>
+                  <Text style={styles.title} numberOfLines={1}>
+                    {item.media_name ?? `Cart #${item.cart_id}`}
+                  </Text>
+                  <Text style={styles.date}>{item.start_date ?? item.order_number ?? ''}</Text>
+                </View>
+              </Card>
+            </Pressable>
+          )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
@@ -97,8 +132,49 @@ function createStyles(colors: ThemeColors) {
       color: colors.textMuted,
       marginBottom: spacing.lg,
     },
+    loading: {
+      marginTop: spacing.xl,
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.danger,
+      textAlign: 'center',
+      marginTop: spacing.xl,
+    },
     listContent: {
       paddingBottom: spacing.xl,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      marginBottom: spacing.md,
+      overflow: 'hidden',
+    },
+    iconBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      backgroundColor: colors.cardBlue,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: spacing.md,
+      alignSelf: 'center',
+    },
+    info: {
+      flex: 1,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    date: {
+      marginTop: 2,
+      fontSize: 13,
+      color: colors.textMuted,
     },
     emptyState: {
       flex: 1,

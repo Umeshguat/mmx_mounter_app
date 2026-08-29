@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, StyleSheet, Text, View, FlatList } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -36,20 +36,22 @@ export default function JobProviderWorklist() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!type || !vendorId) return;
-    setLoading(true);
-    setError(null);
-    getJobProviderWorklist(type, vendorId, 1)
-      .then((result) => {
-        setItems(result.items);
-        setCount(result.count);
-        setPage(result.page);
-        setTotalPages(result.totalPages);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
-      .finally(() => setLoading(false));
-  }, [type, vendorId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!type || !vendorId) return;
+      setLoading(true);
+      setError(null);
+      getJobProviderWorklist(type, vendorId, 1)
+        .then((result) => {
+          setItems(result.items);
+          setCount(result.count);
+          setPage(result.page);
+          setTotalPages(result.totalPages);
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
+        .finally(() => setLoading(false));
+    }, [type, vendorId])
+  );
 
   const loadMore = () => {
     if (!type || !vendorId || loadingMore || page >= totalPages) return;
@@ -90,10 +92,12 @@ export default function JobProviderWorklist() {
             const code = fieldOf(item, ['media_code']);
             const orderNumber = fieldOf(item, ['order_number']);
             const mounterName = fieldOf(item, ['mounter_name']);
-            const subtitle = mounterName ? `Mounter: ${mounterName}` : [code, orderNumber].filter(Boolean).join(' · ');
+            const cartId = fieldOf(item, ['cart_id', 'id']);
+            const unassignedSubtitle = [code, orderNumber].filter(Boolean).join(' · ');
+            const subtitle = mounterName ? `Mounter: ${mounterName}` : unassignedSubtitle;
             const isAssigned = !!mounterName;
 
-            return (
+            const row = (
               <Card elevated padding={0} style={styles.row}>
                 <View style={styles.iconBadge}>
                   <Ionicons name="document-text-outline" size={20} color={colors.primaryStart} />
@@ -112,6 +116,21 @@ export default function JobProviderWorklist() {
                   <Ionicons name={isAssigned ? 'checkmark' : 'time-outline'} size={18} color={colors.white} />
                 </View>
               </Card>
+            );
+
+            if (isAssigned || !cartId) return row;
+
+            return (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: '/assign-mounter',
+                    params: { cartId, title, subtitle: unassignedSubtitle },
+                  })
+                }
+              >
+                {row}
+              </Pressable>
             );
           }}
           ListEmptyComponent={<Text style={styles.emptyText}>No records found.</Text>}

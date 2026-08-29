@@ -43,7 +43,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string, loginType: number) => {
     const result = await loginRequest(username, password, loginType);
     setIsLoggedIn(true);
-    setUserProfileState({ name: result.name, mobile: result.mobile });
+    setUserProfileState({ name: result.name, mobile: result.mobile, loginUserType: result.loginUserType });
     await persist({ isLoggedIn: true, vendor });
     return result;
   };

@@ -2,7 +2,6 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from '../context/AppContext';
-import { AssignmentProvider } from '../context/AssignmentContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 
 function RootStack() {
@@ -27,6 +26,7 @@ function RootStack() {
         <Stack.Screen name="job-provider-dashboard" />
         <Stack.Screen name="job-provider-worklist" />
         <Stack.Screen name="mounter-worklist" />
+        <Stack.Screen name="task-detail" />
         <Stack.Screen name="assign-mounter" options={{ presentation: 'modal' }} />
       </Stack>
     </>
@@ -38,9 +38,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AppProvider>
-          <AssignmentProvider>
-            <RootStack />
-          </AssignmentProvider>
+          <RootStack />
         </AppProvider>
       </ThemeProvider>
     </SafeAreaProvider>

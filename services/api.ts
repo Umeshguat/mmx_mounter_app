@@ -48,6 +48,7 @@ export async function clearApiKey(): Promise<void> {
 export type UserProfile = {
   name: string;
   mobile?: string;
+  loginUserType: string;
 };
 
 export async function getUserProfile(): Promise<UserProfile | null> {
@@ -139,14 +140,15 @@ export async function loginRequest(
 
   const name = returndata.mounter_name || returndata.vendor_name || returndata.name;
   const mobile = returndata.mobile;
+  const loginUserType = String(returndata.loginusertype);
 
-  await setUserProfile({ name, mobile });
+  await setUserProfile({ name, mobile, loginUserType });
 
   return {
     apikey: returndata.apikey,
     name,
     mobile,
-    loginUserType: String(returndata.loginusertype),
+    loginUserType,
     raw: body,
   };
 }
@@ -322,5 +324,159 @@ export async function getMounterWorklist(type: MounterWorklistType, page = 1): P
     count: returndata[`${dataKey}_count`] ?? 0,
     page: returndata.page ?? 1,
     totalPages: returndata.total_pages ?? 1,
+  };
+}
+
+export async function getTaskDetail(cartId: string | number): Promise<any> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/task/${cartId}`, {
+      method: 'GET',
+      headers: { ...authHeaders },
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load task details. Please try again.');
+  return body.returndata?.data ?? body.returndata;
+}
+
+export type FieldMounter = {
+  mounterId: number;
+  mounterName: string;
+  username: string;
+  mobile: string;
+  address: string;
+};
+
+export async function getMounters(): Promise<FieldMounter[]> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/mounterlist`, {
+      method: 'GET',
+      headers: { ...authHeaders },
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load mounters. Please try again.');
+  const list = body.returndata?.data ?? [];
+
+  return list.map((item: any) => ({
+    mounterId: item.mounter_id,
+    mounterName: item.mounter_name,
+    username: item.username,
+    mobile: item.mobile,
+    address: item.address,
+  }));
+}
+
+export type AssignMounterResult = {
+  cartId: number;
+  mounterId: number;
+  mounterName: string;
+};
+
+/**
+ * Job-provider hands a cart from their own mounting worklist/removal bucket
+ * to one of their own mounters. Matches POST /field/task/:cartId/assign-mounter.
+ */
+export async function assignMounter(cartId: string | number, mounterId: string | number): Promise<AssignMounterResult> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/task/${cartId}/assign-mounter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
+      body: JSON.stringify({ mounter_id: mounterId }),
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not assign mounter. Please try again.');
+  const returndata = body.returndata;
+
+  return {
+    cartId: returndata.cart_id,
+    mounterId: returndata.mounter_id,
+    mounterName: returndata.mounter_name,
+  };
+}
+
+export type TaskPhoto = {
+  photoId: number;
+  imageUrl: string;
+};
+
+export type TaskUpdateResult = {
+  cartId: number;
+  cartStatus: string;
+  mountingPhotosUploaded: number;
+  mountingPhotos: TaskPhoto[];
+  removalPhotosUploaded: number;
+  removalPhotos: TaskPhoto[];
+};
+
+export type TaskPhotoUpload = {
+  uri: string;
+};
+
+function appendTaskPhotos(form: FormData, field: string, photos: TaskPhotoUpload[]) {
+  photos.forEach((photo, index) => {
+    const extMatch = /\.(\w+)$/.exec(photo.uri);
+    const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+    form.append(field, {
+      uri: photo.uri,
+      name: `${field}-${index}.${ext}`,
+      type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+    } as any);
+  });
+}
+
+/**
+ * Mounter completes a task: uploads mounting and/or removal photos with a
+ * remark. Matches POST /field/task/:cartId/update — at least one of
+ * mountingPhotos/removalPhotos is required by the server.
+ */
+export async function updateTask(
+  cartId: string | number,
+  params: { remarks: string; mountingPhotos?: TaskPhotoUpload[]; removalPhotos?: TaskPhotoUpload[] }
+): Promise<TaskUpdateResult> {
+  const authHeaders = await getAuthHeaders();
+
+  const form = new FormData();
+  form.append('remarks', params.remarks);
+  appendTaskPhotos(form, 'mounting_photos', params.mountingPhotos ?? []);
+  appendTaskPhotos(form, 'removal_photos', params.removalPhotos ?? []);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/task/${cartId}/update`, {
+      method: 'POST',
+      headers: { ...authHeaders },
+      body: form,
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not update task. Please try again.');
+  const returndata = body.returndata;
+
+  return {
+    cartId: returndata.cart_id,
+    cartStatus: returndata.cart_status,
+    mountingPhotosUploaded: returndata.mounting_photos_uploaded ?? 0,
+    mountingPhotos: (returndata.mounting_photos ?? []).map((p: any) => ({ photoId: p.photo_id, imageUrl: p.image_url })),
+    removalPhotosUploaded: returndata.removal_photos_uploaded ?? 0,
+    removalPhotos: (returndata.removal_photos ?? []).map((p: any) => ({ photoId: p.photo_id, imageUrl: p.image_url })),
   };
 }

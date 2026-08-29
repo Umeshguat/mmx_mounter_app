@@ -53,7 +53,7 @@ export default function TabsLayout() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            router.push('/task-form');
+            router.push('/(tabs)/tasks');
           },
         }}
       />
