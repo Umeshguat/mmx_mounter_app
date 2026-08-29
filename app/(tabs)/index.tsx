@@ -76,7 +76,9 @@ export default function Home() {
             icon="calendar-outline"
             background={colors.cardGreen}
             iconColor={colors.cardGreenIcon}
-            onPress={() => router.push('/(tabs)/tasks')}
+            onPress={() =>
+              router.push({ pathname: '/mounter-worklist', params: { type: 'today', label: "Today's Work" } })
+            }
           />
           <StatCard
             label="Pending Work"
@@ -84,7 +86,9 @@ export default function Home() {
             icon="albums-outline"
             background={colors.cardBlue}
             iconColor={colors.cardBlueIcon}
-            onPress={() => router.push('/(tabs)/tasks')}
+            onPress={() =>
+              router.push({ pathname: '/mounter-worklist', params: { type: 'pending', label: 'Pending Work' } })
+            }
           />
           <StatCard
             label="Mounting Removal"
@@ -92,6 +96,12 @@ export default function Home() {
             icon="desktop-outline"
             background={colors.cardOrange}
             iconColor={colors.cardOrangeIcon}
+            onPress={() =>
+              router.push({
+                pathname: '/mounter-worklist',
+                params: { type: 'mounting_removal', label: 'Mounting Removal' },
+              })
+            }
           />
           <StatCard
             label="Pending Mounting Removal"
@@ -99,6 +109,12 @@ export default function Home() {
             icon="alert-circle-outline"
             background={colors.cardRed}
             iconColor={colors.cardRedIcon}
+            onPress={() =>
+              router.push({
+                pathname: '/mounter-worklist',
+                params: { type: 'pending_mounting_removal', label: 'Pending Mounting Removal' },
+              })
+            }
           />
           <StatCard
             label="Advance Work"
@@ -106,7 +122,9 @@ export default function Home() {
             icon="time-outline"
             background={colors.cardPurple}
             iconColor={colors.cardPurpleIcon}
-            onPress={() => router.push('/(tabs)/tasks')}
+            onPress={() =>
+              router.push({ pathname: '/mounter-worklist', params: { type: 'advance', label: 'Advance Work' } })
+            }
           />
         </View>
       )}

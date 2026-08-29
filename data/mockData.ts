@@ -97,26 +97,7 @@ export type TaskAssignment = {
   status: AssignmentStatus;
 };
 
-export const initialAssignments: TaskAssignment[] = [
-  {
-    id: 'a1',
-    campaignName: 'Seawoods Hoarding',
-    location: 'Seawoods',
-    mounterId: 'm1',
-    mounterName: 'Rajesh Kumar',
-    assignedDate: '21 Dec, 2021',
-    status: 'completed',
-  },
-  {
-    id: 'a2',
-    campaignName: 'Vashi Station Banner',
-    location: 'Vashi Railway Station',
-    mounterId: 'm2',
-    mounterName: 'Suresh Patil',
-    assignedDate: '14 Jan, 2022',
-    status: 'pending',
-  },
-];
+export const initialAssignments: TaskAssignment[] = [];
 
 export type NotificationItem = {
   id: string;

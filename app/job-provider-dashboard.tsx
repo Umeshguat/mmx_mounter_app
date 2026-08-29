@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
+import { StatCard } from '../components/StatCard';
 import { Badge } from '../components/Badge';
 import { GradientButton } from '../components/GradientButton';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
@@ -34,9 +35,6 @@ export default function JobProviderDashboard() {
       .finally(() => setStatsLoading(false));
   }, [vendorId]);
 
-  const completedCount = assignments.filter((a) => a.status === 'completed').length;
-  const pendingCount = assignments.length - completedCount;
-
   const onToggle = (item: TaskAssignment) => {
     setStatus(item.id, item.status === 'completed' ? 'pending' : 'completed');
   };
@@ -51,39 +49,57 @@ export default function JobProviderDashboard() {
         contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
         ListHeaderComponent={
           <>
-            {vendorName ? <Text style={styles.vendorName}>{vendorName}</Text> : null}
+            <Text style={styles.greeting}>{vendorName ?? 'Vendor'}</Text>
+            <Text style={styles.subGreeting}>Job provider dashboard</Text>
 
+            <Text style={styles.sectionTitle}>Overview</Text>
             {statsLoading ? (
               <ActivityIndicator color={colors.primaryStart} style={styles.statsLoading} />
             ) : statsError ? (
               <Text style={styles.statsError}>{statsError}</Text>
-            ) : stats ? (
+            ) : (
               <View style={styles.statsGrid}>
-                <Card tint="muted" style={styles.statCard}>
-                  <Text style={styles.statValue}>{stats.mountingWorklistCount}</Text>
-                  <Text style={styles.statLabel}>Mounting Worklist</Text>
-                </Card>
-                <Card tint="muted" style={styles.statCard}>
-                  <Text style={styles.statValue}>{stats.mountingRemovalCount}</Text>
-                  <Text style={styles.statLabel}>Mounting Removal</Text>
-                </Card>
-                <Card tint="muted" style={styles.statCard}>
-                  <Text style={styles.statValue}>{stats.mounterAssignedCount}</Text>
-                  <Text style={styles.statLabel}>Mounter Assigned</Text>
-                </Card>
+                <StatCard
+                  label="Mounting Worklist"
+                  value={stats?.mountingWorklistCount ?? 0}
+                  icon="list-outline"
+                  background={colors.cardBlue}
+                  iconColor={colors.cardBlueIcon}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/job-provider-worklist',
+                      params: { type: 'mounting_worklist', vendorId, label: 'Mounting Worklist' },
+                    })
+                  }
+                />
+                <StatCard
+                  label="Mounting Removal"
+                  value={stats?.mountingRemovalCount ?? 0}
+                  icon="desktop-outline"
+                  background={colors.cardOrange}
+                  iconColor={colors.cardOrangeIcon}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/job-provider-worklist',
+                      params: { type: 'mounting_removal', vendorId, label: 'Mounting Removal' },
+                    })
+                  }
+                />
+                <StatCard
+                  label="Mounter Assigned"
+                  value={stats?.mounterAssignedCount ?? 0}
+                  icon="person-outline"
+                  background={colors.cardGreen}
+                  iconColor={colors.cardGreenIcon}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/job-provider-worklist',
+                      params: { type: 'mounter_assigned', vendorId, label: 'Mounter Assigned' },
+                    })
+                  }
+                />
               </View>
-            ) : null}
-
-            <View style={styles.summaryRow}>
-              <Card tint="muted" style={styles.summaryCard}>
-                <Text style={styles.summaryValue}>{pendingCount}</Text>
-                <Text style={styles.summaryLabel}>Pending</Text>
-              </Card>
-              <Card tint="muted" style={styles.summaryCard}>
-                <Text style={styles.summaryValue}>{completedCount}</Text>
-                <Text style={styles.summaryLabel}>Completed</Text>
-              </Card>
-            </View>
+            )}
 
             <GradientButton
               label="Assign New Task"
@@ -97,7 +113,7 @@ export default function JobProviderDashboard() {
         }
         renderItem={({ item }) => (
           <Pressable onPress={() => onToggle(item)}>
-            <Card tint="surface" style={styles.row}>
+            <Card tint="muted" style={styles.row}>
               <View style={styles.rowIcon}>
                 <Ionicons name="person-outline" size={20} color={colors.primaryStart} />
               </View>
@@ -134,60 +150,15 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xl,
     },
-    vendorName: {
-      fontSize: 24,
-      fontWeight: '800',
-      color: colors.text,
-      marginBottom: spacing.lg,
-    },
-    statsLoading: {
-      marginBottom: spacing.lg,
-    },
-    statsError: {
-      fontSize: 14,
-      color: colors.danger,
-      marginBottom: spacing.lg,
-    },
-    statsGrid: {
-      flexDirection: 'row',
-      gap: spacing.sm,
-      marginBottom: spacing.lg,
-    },
-    statCard: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    statValue: {
-      fontSize: 22,
+    greeting: {
+      fontSize: 30,
       fontWeight: '800',
       color: colors.text,
     },
-    statLabel: {
-      marginTop: spacing.xs,
-      fontSize: 12,
+    subGreeting: {
+      marginTop: 2,
+      fontSize: 15,
       color: colors.textMuted,
-      textAlign: 'center',
-    },
-    summaryRow: {
-      flexDirection: 'row',
-      gap: spacing.md,
-      marginBottom: spacing.lg,
-    },
-    summaryCard: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    summaryValue: {
-      fontSize: 26,
-      fontWeight: '800',
-      color: colors.text,
-    },
-    summaryLabel: {
-      marginTop: spacing.xs,
-      fontSize: 13,
-      color: colors.textMuted,
-    },
-    assignButton: {
       marginBottom: spacing.lg,
     },
     sectionTitle: {
@@ -195,6 +166,23 @@ function createStyles(colors: ThemeColors) {
       fontWeight: '700',
       color: colors.text,
       marginBottom: spacing.md,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginBottom: spacing.md,
+    },
+    statsLoading: {
+      marginBottom: spacing.md,
+    },
+    statsError: {
+      fontSize: 14,
+      color: colors.danger,
+      marginBottom: spacing.md,
+    },
+    assignButton: {
+      marginBottom: spacing.lg,
     },
     row: {
       flexDirection: 'row',

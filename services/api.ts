@@ -211,6 +211,43 @@ export async function getJobProviderDashboard(vendorId: string | number): Promis
   };
 }
 
+export type JobProviderWorklistType = 'mounting_worklist' | 'mounting_removal' | 'mounter_assigned';
+
+export type JobProviderWorklistResult = {
+  items: any[];
+  count: number;
+  page: number;
+  totalPages: number;
+};
+
+export async function getJobProviderWorklist(
+  type: JobProviderWorklistType,
+  vendorId: string | number,
+  page = 1
+): Promise<JobProviderWorklistResult> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_BASE_URL}/app-api/field/jobproviderworklist?type=${type}&vendorid=${vendorId}&page=${page}`,
+      { method: 'GET', headers: { ...authHeaders } }
+    );
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load worklist. Please try again.');
+  const returndata = body.returndata;
+
+  return {
+    items: returndata[type] ?? [],
+    count: returndata[`${type}_count`] ?? 0,
+    page: returndata.page ?? 1,
+    totalPages: returndata.total_pages ?? 1,
+  };
+}
+
 export type MounterDashboardResult = {
   todayWorkCount: number;
   pendingWorkCount: number;
@@ -243,5 +280,47 @@ export async function getMounterDashboard(): Promise<MounterDashboardResult> {
     pendingMountingRemovalCount: returndata.pending_mounting_removal_count,
     advanceWorkCount: returndata.advance_work_count,
     raw: body,
+  };
+}
+
+export type MounterWorklistType = 'today' | 'pending' | 'advance' | 'mounting_removal' | 'pending_mounting_removal';
+
+const MOUNTER_WORKLIST_DATA_KEY: Record<MounterWorklistType, string> = {
+  today: 'today_work',
+  pending: 'pending_work',
+  advance: 'advance_work',
+  mounting_removal: 'mounting_removal',
+  pending_mounting_removal: 'pending_mounting_removal',
+};
+
+export type MounterWorklistResult = {
+  items: any[];
+  count: number;
+  page: number;
+  totalPages: number;
+};
+
+export async function getMounterWorklist(type: MounterWorklistType, page = 1): Promise<MounterWorklistResult> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/mounterworklist?type=${type}&page=${page}`, {
+      method: 'GET',
+      headers: { ...authHeaders },
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load worklist. Please try again.');
+  const returndata = body.returndata;
+  const dataKey = MOUNTER_WORKLIST_DATA_KEY[type];
+
+  return {
+    items: returndata[dataKey] ?? [],
+    count: returndata[`${dataKey}_count`] ?? 0,
+    page: returndata.page ?? 1,
+    totalPages: returndata.total_pages ?? 1,
   };
 }
