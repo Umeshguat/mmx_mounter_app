@@ -33,7 +33,6 @@ export default function Tasks() {
         </View>
       </View>
 
-      <Text style={styles.title}>My Task</Text>
       <Text style={styles.subtitle}>{tasks.length} tasks</Text>
 
       {tasks.length === 0 ? (
@@ -91,11 +90,6 @@ function createStyles(colors: ThemeColors) {
       position: 'absolute',
       top: -2,
       right: -2,
-    },
-    title: {
-      fontSize: 30,
-      fontWeight: '800',
-      color: colors.text,
     },
     subtitle: {
       marginTop: 2,

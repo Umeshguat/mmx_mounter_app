@@ -6,7 +6,6 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
-import { currentUser } from '../data/mockData';
 import { RateUsModal } from './RateUsModal';
 import { MmxWordmark, WORDMARK_ALLOCATED_HEIGHT } from './MmxWordmark';
 import { ToggleSwitch } from './ToggleSwitch';
@@ -29,7 +28,7 @@ type Props = {
 export function SidebarMenu({ visible, onClose }: Props) {
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { logout, vendor } = useApp();
+  const { logout, vendor, userProfile } = useApp();
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
 
@@ -100,7 +99,8 @@ export function SidebarMenu({ visible, onClose }: Props) {
                 <Ionicons name="checkmark" size={10} color={colors.white} />
               </View>
             </View>
-            <Text style={styles.name}>{currentUser.name}</Text>
+            <Text style={styles.name}>{userProfile?.name ?? 'User'}</Text>
+            {userProfile?.mobile ? <Text style={styles.vendorName}>{userProfile.mobile}</Text> : null}
             {vendor ? <Text style={styles.vendorName}>{vendor.name}</Text> : null}
           </View>
 

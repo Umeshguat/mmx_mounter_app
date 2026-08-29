@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { router } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
@@ -10,6 +10,7 @@ import { Badge } from '../components/Badge';
 import { GradientButton } from '../components/GradientButton';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { useAssignments } from '../context/AssignmentContext';
+import { getJobProviderDashboard, type JobProviderDashboardResult } from '../services/api';
 import type { TaskAssignment } from '../data/mockData';
 
 export default function JobProviderDashboard() {
@@ -17,6 +18,21 @@ export default function JobProviderDashboard() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
   const { assignments, setStatus } = useAssignments();
+  const { vendorId, vendorName } = useLocalSearchParams<{ vendorId?: string; vendorName?: string }>();
+
+  const [stats, setStats] = useState<JobProviderDashboardResult | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!vendorId) return;
+    setStatsLoading(true);
+    setStatsError(null);
+    getJobProviderDashboard(vendorId)
+      .then(setStats)
+      .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
+      .finally(() => setStatsLoading(false));
+  }, [vendorId]);
 
   const completedCount = assignments.filter((a) => a.status === 'completed').length;
   const pendingCount = assignments.length - completedCount;
@@ -35,6 +51,29 @@ export default function JobProviderDashboard() {
         contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
         ListHeaderComponent={
           <>
+            {vendorName ? <Text style={styles.vendorName}>{vendorName}</Text> : null}
+
+            {statsLoading ? (
+              <ActivityIndicator color={colors.primaryStart} style={styles.statsLoading} />
+            ) : statsError ? (
+              <Text style={styles.statsError}>{statsError}</Text>
+            ) : stats ? (
+              <View style={styles.statsGrid}>
+                <Card tint="muted" style={styles.statCard}>
+                  <Text style={styles.statValue}>{stats.mountingWorklistCount}</Text>
+                  <Text style={styles.statLabel}>Mounting Worklist</Text>
+                </Card>
+                <Card tint="muted" style={styles.statCard}>
+                  <Text style={styles.statValue}>{stats.mountingRemovalCount}</Text>
+                  <Text style={styles.statLabel}>Mounting Removal</Text>
+                </Card>
+                <Card tint="muted" style={styles.statCard}>
+                  <Text style={styles.statValue}>{stats.mounterAssignedCount}</Text>
+                  <Text style={styles.statLabel}>Mounter Assigned</Text>
+                </Card>
+              </View>
+            ) : null}
+
             <View style={styles.summaryRow}>
               <Card tint="muted" style={styles.summaryCard}>
                 <Text style={styles.summaryValue}>{pendingCount}</Text>
@@ -94,6 +133,40 @@ function createStyles(colors: ThemeColors) {
     content: {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xl,
+    },
+    vendorName: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.text,
+      marginBottom: spacing.lg,
+    },
+    statsLoading: {
+      marginBottom: spacing.lg,
+    },
+    statsError: {
+      fontSize: 14,
+      color: colors.danger,
+      marginBottom: spacing.lg,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginBottom: spacing.lg,
+    },
+    statCard: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    statLabel: {
+      marginTop: spacing.xs,
+      fontSize: 12,
+      color: colors.textMuted,
+      textAlign: 'center',
     },
     summaryRow: {
       flexDirection: 'row',

@@ -1,13 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { vendors, type Vendor } from '../data/mockData';
-import { loginRequest } from '../services/api';
+import { clearApiKey, clearUserProfile, getUserProfile, loginRequest, type LoginResult, type UserProfile } from '../services/api';
 
 type AppState = {
   isLoading: boolean;
   isLoggedIn: boolean;
   vendor: Vendor | null;
-  login: (username: string, password: string) => Promise<void>;
+  userProfile: UserProfile | null;
+  login: (username: string, password: string, loginType: number) => Promise<LoginResult>;
   logout: () => Promise<void>;
   selectVendor: (vendor: Vendor) => Promise<void>;
 };
@@ -20,33 +21,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => {
+    Promise.all([AsyncStorage.getItem(STORAGE_KEY), getUserProfile()])
+      .then(([raw, profile]) => {
         if (raw) {
           const saved = JSON.parse(raw);
           setIsLoggedIn(!!saved.isLoggedIn);
           setVendor(saved.vendor ?? null);
         }
+        setUserProfileState(profile);
       })
       .finally(() => setIsLoading(false));
   }, []);
 
-  const persist = async (next: { isLoggedIn: boolean; vendor: Vendor | null; token?: string }) => {
+  const persist = async (next: { isLoggedIn: boolean; vendor: Vendor | null }) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
 
-  const login = async (username: string, password: string) => {
-    const result = await loginRequest(username, password);
+  const login = async (username: string, password: string, loginType: number) => {
+    const result = await loginRequest(username, password, loginType);
     setIsLoggedIn(true);
-    await persist({ isLoggedIn: true, vendor, token: result.token });
+    setUserProfileState({ name: result.name, mobile: result.mobile });
+    await persist({ isLoggedIn: true, vendor });
+    return result;
   };
 
   const logout = async () => {
     setIsLoggedIn(false);
     setVendor(null);
+    setUserProfileState(null);
     await AsyncStorage.removeItem(STORAGE_KEY);
+    await clearApiKey();
+    await clearUserProfile();
   };
 
   const selectVendor = async (nextVendor: Vendor) => {
@@ -55,8 +63,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ isLoading, isLoggedIn, vendor, login, logout, selectVendor }),
-    [isLoading, isLoggedIn, vendor]
+    () => ({ isLoading, isLoggedIn, vendor, userProfile, login, logout, selectVendor }),
+    [isLoading, isLoggedIn, vendor, userProfile]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

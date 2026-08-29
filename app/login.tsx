@@ -6,13 +6,20 @@ import { ILLUSTRATION_SIZE, radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { TextField } from '../components/TextField';
+import { Dropdown } from '../components/Dropdown';
 import { GradientButton } from '../components/GradientButton';
 import { useApp } from '../context/AppContext';
+
+const LOGIN_TYPE_OPTIONS = [
+  { id: '13', name: 'Mounter' },
+  { id: '12', name: 'Other Vendor' },
+];
 
 export default function Login() {
   const { login } = useApp();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [loginType, setLoginType] = useState(LOGIN_TYPE_OPTIONS[0]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -23,8 +30,12 @@ export default function Login() {
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      await login(username.trim(), password);
-      router.replace('/vendor-select');
+      const result = await login(username.trim(), password, Number(loginType.id));
+      if (result.loginUserType === '13') {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/vendor-select');
+      }
     } catch (error) {
       Alert.alert('Login failed', error instanceof Error ? error.message : 'Please try again.');
     } finally {
@@ -53,6 +64,14 @@ export default function Login() {
 
         <Card tint="surface" style={styles.formCard}>
           <View style={styles.form}>
+            <Dropdown
+              icon="briefcase-outline"
+              placeholder="Select login type"
+              value={loginType}
+              options={LOGIN_TYPE_OPTIONS}
+              onSelect={setLoginType}
+            />
+            <View style={styles.spacer} />
             <TextField
               icon="person-outline"
               placeholder="Username"

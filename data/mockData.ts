@@ -69,11 +69,6 @@ export const recentActivity: RecentActivity[] = [
   { id: 'r2', title: 'Mobile Application', date: '21 Dec, 2021', icon: 'monitor', color: 'orange' },
 ];
 
-export const currentUser = {
-  name: 'Kavita Patil',
-  firstName: 'Kavita',
-};
-
 export const mediaTypes = ['Hoarding', 'Banner', 'Digital Screen', 'Pole Kiosk'];
 export const lightTypes = ['Front Lit', 'Back Lit', 'Non Lit'];
 

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
@@ -11,17 +11,32 @@ import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
 import { SidebarMenu } from '../../components/SidebarMenu';
 import { useApp } from '../../context/AppContext';
-import { currentUser, recentActivity } from '../../data/mockData';
+import { getMounterDashboard, type MounterDashboardResult } from '../../services/api';
+import { recentActivity } from '../../data/mockData';
 
 const HEADER_CONTENT_HEIGHT = 56;
 
 export default function Home() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { vendor } = useApp();
+  const { vendor, userProfile } = useApp();
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const headerHeight = insets.top + HEADER_CONTENT_HEIGHT;
+  const firstName = userProfile?.name?.split(' ')[0] ?? 'there';
+
+  const [stats, setStats] = useState<MounterDashboardResult | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStatsLoading(true);
+    setStatsError(null);
+    getMounterDashboard()
+      .then(setStats)
+      .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   return (
     <>
@@ -43,52 +58,58 @@ export default function Home() {
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
       >
-      <Text style={styles.greeting}>Hello, {currentUser.firstName} !</Text>
+      <Text style={styles.greeting}>Hello, {firstName} !</Text>
       <Text style={styles.subGreeting}>
         Welcome back{vendor ? ` · ${vendor.name}` : ''}
       </Text>
 
       <Text style={styles.sectionTitle}>My Task</Text>
-      <View style={styles.statsGrid}>
-        <StatCard
-          label="Today's Work"
-          value={20}
-          icon="calendar-outline"
-          background={colors.cardGreen}
-          iconColor={colors.cardGreenIcon}
-          onPress={() => router.push('/(tabs)/tasks')}
-        />
-        <StatCard
-          label="Pending Work"
-          value={6}
-          icon="albums-outline"
-          background={colors.cardBlue}
-          iconColor={colors.cardBlueIcon}
-          onPress={() => router.push('/(tabs)/tasks')}
-        />
-        <StatCard
-          label="Mounting Removal"
-          value={3}
-          icon="desktop-outline"
-          background={colors.cardOrange}
-          iconColor={colors.cardOrangeIcon}
-        />
-        <StatCard
-          label="Pending Mounting Removal"
-          value={0}
-          icon="alert-circle-outline"
-          background={colors.cardRed}
-          iconColor={colors.cardRedIcon}
-        />
-        <StatCard
-          label="Advance Work"
-          value={4}
-          icon="time-outline"
-          background={colors.cardPurple}
-          iconColor={colors.cardPurpleIcon}
-          onPress={() => router.push('/(tabs)/tasks')}
-        />
-      </View>
+      {statsLoading ? (
+        <ActivityIndicator color={colors.primaryStart} style={styles.statsLoading} />
+      ) : statsError ? (
+        <Text style={styles.statsError}>{statsError}</Text>
+      ) : (
+        <View style={styles.statsGrid}>
+          <StatCard
+            label="Today's Work"
+            value={stats?.todayWorkCount ?? 0}
+            icon="calendar-outline"
+            background={colors.cardGreen}
+            iconColor={colors.cardGreenIcon}
+            onPress={() => router.push('/(tabs)/tasks')}
+          />
+          <StatCard
+            label="Pending Work"
+            value={stats?.pendingWorkCount ?? 0}
+            icon="albums-outline"
+            background={colors.cardBlue}
+            iconColor={colors.cardBlueIcon}
+            onPress={() => router.push('/(tabs)/tasks')}
+          />
+          <StatCard
+            label="Mounting Removal"
+            value={stats?.mountingRemovalCount ?? 0}
+            icon="desktop-outline"
+            background={colors.cardOrange}
+            iconColor={colors.cardOrangeIcon}
+          />
+          <StatCard
+            label="Pending Mounting Removal"
+            value={stats?.pendingMountingRemovalCount ?? 0}
+            icon="alert-circle-outline"
+            background={colors.cardRed}
+            iconColor={colors.cardRedIcon}
+          />
+          <StatCard
+            label="Advance Work"
+            value={stats?.advanceWorkCount ?? 0}
+            icon="time-outline"
+            background={colors.cardPurple}
+            iconColor={colors.cardPurpleIcon}
+            onPress={() => router.push('/(tabs)/tasks')}
+          />
+        </View>
+      )}
 
       <Text style={styles.sectionTitle}>Recent</Text>
       {recentActivity.map((item) => (
@@ -179,6 +200,14 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
+      marginBottom: spacing.md,
+    },
+    statsLoading: {
+      marginBottom: spacing.md,
+    },
+    statsError: {
+      fontSize: 14,
+      color: colors.danger,
       marginBottom: spacing.md,
     },
     recentRow: {

@@ -7,7 +7,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { useApp } from '../../context/AppContext';
-import { currentUser } from '../../data/mockData';
 import { RateUsModal } from '../../components/RateUsModal';
 import { Card } from '../../components/Card';
 import { ToggleSwitch } from '../../components/ToggleSwitch';
@@ -23,7 +22,7 @@ type MenuItem = {
 export default function Profile() {
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { logout } = useApp();
+  const { logout, userProfile } = useApp();
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -64,7 +63,10 @@ export default function Profile() {
           <Ionicons name="checkmark" size={12} color={colors.white} />
         </View>
       </View>
-      <Text style={styles.name}>{currentUser.name}</Text>
+      <View style={styles.nameBlock}>
+        <Text style={styles.name}>{userProfile?.name ?? 'User'}</Text>
+        {userProfile?.mobile ? <Text style={styles.mobile}>{userProfile.mobile}</Text> : null}
+      </View>
 
       <Card tint="surface" padding={0} style={styles.menuCard}>
         <View style={[styles.menuRow, styles.themeRow]}>
@@ -132,12 +134,19 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    name: {
+    nameBlock: {
       marginTop: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    name: {
       fontSize: 20,
       fontWeight: '700',
       color: colors.text,
-      marginBottom: spacing.lg,
+    },
+    mobile: {
+      marginTop: 2,
+      fontSize: 14,
+      color: colors.textMuted,
     },
     menuCard: {
       overflow: 'hidden',

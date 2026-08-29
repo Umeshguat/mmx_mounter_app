@@ -61,8 +61,6 @@ export default function WorkSummary() {
         </View>
       </View>
 
-      <Text style={styles.title}>Work Summary</Text>
-
       {searchOpen ? (
         <View style={styles.searchRow}>
           <Ionicons name="search" size={18} color={colors.textMuted} />
@@ -180,12 +178,6 @@ function createStyles(colors: ThemeColors) {
       height: 7,
       borderRadius: 4,
       backgroundColor: colors.primaryStart,
-    },
-    title: {
-      fontSize: 30,
-      fontWeight: '800',
-      color: colors.text,
-      marginBottom: spacing.lg,
     },
     searchRow: {
       flexDirection: 'row',
