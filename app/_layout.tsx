@@ -24,6 +24,7 @@ function RootStack() {
         <Stack.Screen name="help-support" />
         <Stack.Screen name="about" />
         <Stack.Screen name="job-provider-dashboard" />
+        <Stack.Screen name="job-provider-profile" />
         <Stack.Screen name="job-provider-worklist" />
         <Stack.Screen name="mounter-worklist" />
         <Stack.Screen name="task-detail" />

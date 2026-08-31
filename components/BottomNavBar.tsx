@@ -34,7 +34,10 @@ export function BottomNavBar({ active, vendorId }: Props) {
   // today — summary renders as an inactive placeholder until a job-provider
   // work-summary screen exists.
   const destinations: Partial<Record<NavId, Parameters<typeof router.push>[0]>> = {
-    profile: '/profile',
+    // Deliberately NOT '/profile' — that path resolves into (tabs)/profile.tsx
+    // since (tabs) is a route group, which would mount the mounter's Tabs
+    // navigator (and its "+" button) underneath this job-provider session.
+    profile: '/job-provider-profile',
     ...(vendorId
       ? {
           assignList: {

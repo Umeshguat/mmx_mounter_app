@@ -429,16 +429,19 @@ export type TaskPhotoUpload = {
   uri: string;
 };
 
-function appendTaskPhotos(form: FormData, field: string, photos: TaskPhotoUpload[]) {
-  photos.forEach((photo, index) => {
+// SDK 57's networking stack throws "Unsupported FormDataPart implementation"
+// for the classic RN `{ uri, name, type }` object literal, so read each local
+// file into a real Blob first (RN's fetch() supports reading file:// URIs)
+// and append that instead — a Blob part is universally supported.
+async function appendTaskPhotos(form: FormData, field: string, photos: TaskPhotoUpload[]) {
+  for (let index = 0; index < photos.length; index += 1) {
+    const photo = photos[index];
     const extMatch = /\.(\w+)$/.exec(photo.uri);
     const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-    form.append(field, {
-      uri: photo.uri,
-      name: `${field}-${index}.${ext}`,
-      type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
-    } as any);
-  });
+    const fileResponse = await fetch(photo.uri);
+    const blob = await fileResponse.blob();
+    form.append(field, blob, `${field}-${index}.${ext}`);
+  }
 }
 
 /**
@@ -452,20 +455,30 @@ export async function updateTask(
 ): Promise<TaskUpdateResult> {
   const authHeaders = await getAuthHeaders();
 
-  const form = new FormData();
-  form.append('remarks', params.remarks);
-  appendTaskPhotos(form, 'mounting_photos', params.mountingPhotos ?? []);
-  appendTaskPhotos(form, 'removal_photos', params.removalPhotos ?? []);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
 
   let response: Response;
   try {
+    const form = new FormData();
+    form.append('remarks', params.remarks);
+    await appendTaskPhotos(form, 'mounting_photos', params.mountingPhotos ?? []);
+    await appendTaskPhotos(form, 'removal_photos', params.removalPhotos ?? []);
+
     response = await fetch(`${API_BASE_URL}/app-api/field/task/${cartId}/update`, {
       method: 'POST',
       headers: { ...authHeaders },
       body: form,
+      signal: controller.signal,
     });
-  } catch {
-    throw new Error('Could not reach the server. Check your connection and try again.');
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Upload timed out after 60s. Try again on a stronger connection.');
+    }
+    const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    throw new Error(`Could not reach the server (${detail}). Check your connection and try again.`);
+  } finally {
+    clearTimeout(timeout);
   }
 
   const body = await parseApiResponse(response, 'Could not update task. Please try again.');
