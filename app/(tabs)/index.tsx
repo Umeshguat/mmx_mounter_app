@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,14 +29,16 @@ export default function Home() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setStatsLoading(true);
-    setStatsError(null);
-    getMounterDashboard()
-      .then(setStats)
-      .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
-      .finally(() => setStatsLoading(false));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setStatsLoading(true);
+      setStatsError(null);
+      getMounterDashboard()
+        .then(setStats)
+        .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
+        .finally(() => setStatsLoading(false));
+    }, [])
+  );
 
   return (
     <>

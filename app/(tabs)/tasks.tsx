@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,16 +21,18 @@ export default function Tasks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    Promise.all(OVERVIEW_TYPES.map((type) => getMounterWorklist(type, 1)))
-      .then((results) => {
-        setItems(results.flatMap((r) => r.items));
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load tasks.'))
-      .finally(() => setLoading(false));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      setError(null);
+      Promise.all(OVERVIEW_TYPES.map((type) => getMounterWorklist(type, 1)))
+        .then((results) => {
+          setItems(results.flatMap((r, index) => r.items.map((item) => ({ ...item, __worklistType: OVERVIEW_TYPES[index] }))));
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : 'Could not load tasks.'))
+        .finally(() => setLoading(false));
+    }, [])
+  );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
@@ -69,7 +71,11 @@ export default function Tasks() {
           data={items}
           keyExtractor={(item, index) => String(item.cart_id ?? index)}
           renderItem={({ item }) => (
-            <Pressable onPress={() => router.push({ pathname: '/task-detail', params: { cartId: item.cart_id } })}>
+            <Pressable
+              onPress={() =>
+                router.push({ pathname: '/task-detail', params: { cartId: item.cart_id, type: item.__worklistType } })
+              }
+            >
               <Card elevated padding={0} style={styles.row}>
                 <View style={styles.iconBadge}>
                   <Ionicons name="document-text-outline" size={20} color={colors.primaryStart} />

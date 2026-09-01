@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, ScrollView, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,15 +26,17 @@ export default function JobProviderDashboard() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!vendorId) return;
-    setStatsLoading(true);
-    setStatsError(null);
-    getJobProviderDashboard(vendorId)
-      .then(setStats)
-      .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
-      .finally(() => setStatsLoading(false));
-  }, [vendorId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!vendorId) return;
+      setStatsLoading(true);
+      setStatsError(null);
+      getJobProviderDashboard(vendorId)
+        .then(setStats)
+        .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
+        .finally(() => setStatsLoading(false));
+    }, [vendorId])
+  );
 
   return (
     <>

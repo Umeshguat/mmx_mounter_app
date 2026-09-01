@@ -16,7 +16,16 @@ export default function TaskForm() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
 
-  const { cartId } = useLocalSearchParams<{ cartId?: string }>();
+  const { cartId, type } = useLocalSearchParams<{ cartId?: string; type?: string }>();
+
+  // Worklist type tells us which kind of task this is: today/pending/advance are
+  // mounting jobs (only need mounting photos); mounting_removal/pending_mounting_removal
+  // are removal jobs (only need removal photos). Unknown/missing type (e.g. a direct
+  // deep link) falls back to showing both, same as before.
+  const isMountingOnly = type === 'today' || type === 'pending' || type === 'advance';
+  const isRemovalOnly = type === 'mounting_removal' || type === 'pending_mounting_removal';
+  const showMounting = !isRemovalOnly;
+  const showRemoval = !isMountingOnly;
 
   const [task, setTask] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(!!cartId);
@@ -37,15 +46,24 @@ export default function TaskForm() {
       .finally(() => setLoading(false));
   }, [cartId]);
 
-  const canSubmit = remarks.trim().length > 0 && (mountingPhotos.length > 0 || removalPhotos.length > 0);
+  const canSubmit =
+    remarks.trim().length > 0 &&
+    ((showMounting && mountingPhotos.length > 0) || (showRemoval && removalPhotos.length > 0));
 
   const onSubmit = async () => {
     if (!cartId || !canSubmit) return;
     setSubmitting(true);
     try {
-      await updateTask(cartId, { remarks: remarks.trim(), mountingPhotos, removalPhotos });
+      await updateTask(cartId, {
+        remarks: remarks.trim(),
+        mountingPhotos: showMounting ? mountingPhotos : [],
+        removalPhotos: showRemoval ? removalPhotos : [],
+      });
+      // Skip past task-detail straight back to the worklist/task list this task
+      // came from — that screen's useFocusEffect re-fetches on regaining focus,
+      // so it (and the dashboard, next time it's visited) shows updated data.
       Alert.alert('Task updated', 'Your remarks and photos have been submitted.', [
-        { text: 'OK', onPress: () => router.back() },
+        { text: 'OK', onPress: () => router.dismiss(2) },
       ]);
     } catch (err) {
       Alert.alert('Could not update task', err instanceof Error ? err.message : 'Please try again.');
@@ -106,13 +124,17 @@ export default function TaskForm() {
               />
             </Card>
 
-            <Card tint="muted" style={styles.section}>
-              <ImagesList label="Mounting Photos" images={mountingPhotos} onAdd={(image) => setMountingPhotos((prev) => [...prev, image])} />
-            </Card>
+            {showMounting ? (
+              <Card tint="muted" style={styles.section}>
+                <ImagesList label="Mounting Photos" images={mountingPhotos} onAdd={(image) => setMountingPhotos((prev) => [...prev, image])} />
+              </Card>
+            ) : null}
 
-            <Card tint="muted" style={styles.section}>
-              <ImagesList label="Removal Photos" images={removalPhotos} onAdd={(image) => setRemovalPhotos((prev) => [...prev, image])} />
-            </Card>
+            {showRemoval ? (
+              <Card tint="muted" style={styles.section}>
+                <ImagesList label="Removal Photos" images={removalPhotos} onAdd={(image) => setRemovalPhotos((prev) => [...prev, image])} />
+              </Card>
+            ) : null}
 
             <GradientButton
               label="Submit"

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -32,20 +32,22 @@ export default function MounterWorklist() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!type) return;
-    setLoading(true);
-    setError(null);
-    getMounterWorklist(type, 1)
-      .then((result) => {
-        setItems(result.items);
-        setCount(result.count);
-        setTotalPages(result.totalPages);
-        setPage(result.page);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
-      .finally(() => setLoading(false));
-  }, [type]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!type) return;
+      setLoading(true);
+      setError(null);
+      getMounterWorklist(type, 1)
+        .then((result) => {
+          setItems(result.items);
+          setCount(result.count);
+          setTotalPages(result.totalPages);
+          setPage(result.page);
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
+        .finally(() => setLoading(false));
+    }, [type])
+  );
 
   const loadMore = () => {
     if (!type || loadingMore || page >= totalPages) return;
@@ -91,7 +93,11 @@ export default function MounterWorklist() {
             const cartId = fieldOf(item, ['cart_id', 'id']);
 
             return (
-              <Pressable onPress={() => cartId && router.push({ pathname: '/task-detail', params: { cartId } })}>
+              <Pressable
+                onPress={() =>
+                  cartId && router.push({ pathname: '/task-detail', params: { cartId, type } })
+                }
+              >
                 <Card elevated padding={0} style={styles.row}>
                   <View style={styles.iconBadge}>
                     <Ionicons name="document-text-outline" size={20} color={colors.primaryStart} />

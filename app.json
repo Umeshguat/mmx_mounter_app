@@ -22,6 +22,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
+        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -47,6 +48,12 @@
       "eas": {
         "projectId": "729257c5-334e-4a94-8d77-ac51e718573e"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/729257c5-334e-4a94-8d77-ac51e718573e"
     }
   }
 }

@@ -39,7 +39,7 @@ export default function TaskDetail() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
-  const { cartId } = useLocalSearchParams<{ cartId: string }>();
+  const { cartId, type } = useLocalSearchParams<{ cartId: string; type?: string }>();
 
   const [task, setTask] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function TaskDetail() {
           <GradientButton
             label="Complete Task"
             icon="camera"
-            onPress={() => router.push({ pathname: '/task-form', params: { cartId } })}
+            onPress={() => router.push({ pathname: '/task-form', params: { cartId, type } })}
             style={styles.completeButton}
           />
         </ScrollView>
