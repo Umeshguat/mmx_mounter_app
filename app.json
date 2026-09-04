@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "scheme": "mmxmounter",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bindassdealdigital.mmxmounter"
     },
     "android": {
       "package": "com.bindassdealdigital.mmxmounter",

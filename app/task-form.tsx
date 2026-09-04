@@ -47,8 +47,7 @@ export default function TaskForm() {
   }, [cartId]);
 
   const canSubmit =
-    remarks.trim().length > 0 &&
-    ((showMounting && mountingPhotos.length > 0) || (showRemoval && removalPhotos.length > 0));
+    (showMounting && mountingPhotos.length > 0) || (showRemoval && removalPhotos.length > 0);
 
   const onSubmit = async () => {
     if (!cartId || !canSubmit) return;
