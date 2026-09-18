@@ -15,10 +15,12 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
+const BUTTON_GRADIENT = ['#4B1F79', '#2E1550'] as const;
+
 export function GradientButton({ label, onPress, icon, loading, disabled, style }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const gradientColors = [colors.primaryStart, colors.primaryEnd] as const;
+  const gradientColors = BUTTON_GRADIENT;
 
   return (
     <Pressable onPress={onPress} disabled={disabled || loading} style={style}>
@@ -51,11 +53,11 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     button: {
       height: 56,
-      borderRadius: radius.md,
+      borderRadius: radius.pill,
       alignItems: 'center',
       justifyContent: 'center',
       position: 'relative',
-      shadowColor: colors.primaryStart,
+      shadowColor: '#2E1550',
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.28,
       shadowRadius: 12,
@@ -66,9 +68,10 @@ function createStyles(colors: ThemeColors) {
     },
     label: {
       color: colors.white,
-      fontSize: 17,
+      fontSize: 16,
       fontWeight: '700',
-      letterSpacing: 0.2,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
     },
     iconRight: {
       position: 'absolute',

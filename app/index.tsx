@@ -39,16 +39,16 @@ export default function Splash() {
     <View style={styles.container}>
       <StatusBar hidden />
 
-      <View style={styles.topSection}>
+      <View style={styles.centerSection}>
         <Image
           source={require('../assets/images/growth-arrow.png')}
           style={styles.arrow}
           resizeMode="contain"
         />
-      </View>
 
-      <View style={styles.headingSection}>
-        <Text style={styles.title}>GROW YOUR{'\n'}BUSINESS</Text>
+        <Text style={styles.title}>
+          <Text style={styles.titleBold}>GROW</Text> YOUR{'\n'}BUSINESS
+        </Text>
         <View style={styles.withRow}>
           <View style={styles.withLine} />
           <Text style={styles.withText}>WITH</Text>
@@ -76,32 +76,29 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
       paddingHorizontal: spacing.lg,
     },
-    topSection: {
-      flex: 0.45,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingTop: spacing.xl + 40,
-    },
-    arrow: {
-      width: 220,
-      height: 140,
-    },
-    headingSection: {
+    centerSection: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    arrow: {
+      width: 380,
+      height: 250,
     },
     bottomSection: {
       alignItems: 'center',
       paddingBottom: spacing.xl,
     },
     title: {
-      fontSize: 30,
-      fontWeight: '800',
+      fontSize: 45,
+      fontWeight: '400',
       color: colors.onBackground,
       letterSpacing: 1,
-      lineHeight: 38,
+      lineHeight: 46,
       textAlign: 'center',
+    },
+    titleBold: {
+      fontWeight: '800',
     },
     withRow: {
       flexDirection: 'row',
@@ -116,14 +113,14 @@ function createStyles(colors: ThemeColors) {
       marginHorizontal: spacing.sm,
     },
     withText: {
-      fontSize: 14,
+      fontSize: 18,
       fontWeight: '600',
       color: colors.onBackgroundMuted,
       letterSpacing: 2,
     },
     logo: {
-      width: 260,
-      height: 190,
+      width: 350,
+      height: 175,
     },
   });
 }

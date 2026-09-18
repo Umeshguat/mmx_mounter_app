@@ -127,10 +127,10 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.inputBackground,
-      borderRadius: radius.md,
+      borderRadius: radius.pill,
       borderWidth: 1,
       borderColor: colors.border,
-      paddingHorizontal: spacing.md,
+      paddingHorizontal: spacing.lg,
       height: 56,
     },
     leftIcon: {

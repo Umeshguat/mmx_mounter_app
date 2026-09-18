@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -21,6 +22,7 @@ import { useApp } from '../context/AppContext';
 
 const LOGIN_TYPE_OPTIONS = [
   { id: '13', name: 'Mounter' },
+  { id: '14', name: 'Monitor' },
   { id: '12', name: 'Other Vendor' },
 ];
 
@@ -31,6 +33,7 @@ export default function Login() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [loginType, setLoginType] = useState(LOGIN_TYPE_OPTIONS[0]);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [passwordHidden, setPasswordHidden] = useState(true);
@@ -69,20 +72,36 @@ export default function Login() {
             <Ionicons name="person" size={44} color="rgba(255,255,255,0.85)" />
           </View>
 
-          <View style={styles.typeRow}>
-            {LOGIN_TYPE_OPTIONS.map((option) => {
-              const active = option.id === loginType.id;
-              return (
-                <Pressable
-                  key={option.id}
-                  onPress={() => setLoginType(option)}
-                  style={[styles.typePill, active && styles.typePillActive]}
-                >
-                  <Text style={[styles.typePillText, active && styles.typePillTextActive]}>{option.name}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Pressable style={styles.typeDropdown} onPress={() => setTypePickerOpen(true)}>
+            <Ionicons name="briefcase-outline" size={18} color="rgba(255,255,255,0.85)" style={glassStyles.icon} />
+            <Text style={styles.typeDropdownText}>{loginType.name}</Text>
+            <Ionicons name="chevron-down" size={18} color="rgba(255,255,255,0.85)" />
+          </Pressable>
+
+          <Modal visible={typePickerOpen} transparent animationType="fade" onRequestClose={() => setTypePickerOpen(false)}>
+            <Pressable style={styles.pickerBackdrop} onPress={() => setTypePickerOpen(false)}>
+              <View style={styles.pickerSheet}>
+                {LOGIN_TYPE_OPTIONS.map((option) => {
+                  const active = option.id === loginType.id;
+                  return (
+                    <Pressable
+                      key={option.id}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setLoginType(option);
+                        setTypePickerOpen(false);
+                      }}
+                    >
+                      <Text style={[styles.pickerOptionText, active && styles.pickerOptionTextActive]}>
+                        {option.name}
+                      </Text>
+                      {active ? <Ionicons name="checkmark-circle" size={20} color="#DB4438" /> : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Pressable>
+          </Modal>
 
           <GlassField
             icon="mail-outline"
@@ -207,18 +226,19 @@ function createStyles(colors: ThemeColors) {
     },
     container: {
       flexGrow: 1,
+      justifyContent: 'center',
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.xxl + spacing.md,
-      paddingBottom: spacing.xl,
+      paddingVertical: spacing.xxl,
     },
     welcome: {
-      fontSize: 30,
+      fontSize: 45,
       fontWeight: '800',
       color: colors.onBackground,
       textAlign: 'center',
       marginBottom: spacing.xxl,
     },
     card: {
+      marginHorizontal: 20,
       borderRadius: 32,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
@@ -239,28 +259,46 @@ function createStyles(colors: ThemeColors) {
       justifyContent: 'center',
       marginBottom: spacing.lg,
     },
-    typeRow: {
+    typeDropdown: {
       flexDirection: 'row',
-      justifyContent: 'center',
-      gap: spacing.sm,
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255,255,255,0.45)',
+      paddingBottom: spacing.sm,
       marginBottom: spacing.lg,
     },
-    typePill: {
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.pill,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.5)',
-    },
-    typePillActive: {
-      backgroundColor: 'rgba(255,255,255,0.9)',
-    },
-    typePillText: {
-      fontSize: 13,
-      fontWeight: '600',
+    typeDropdownText: {
+      flex: 1,
+      fontSize: 15,
       color: '#FFFFFF',
     },
-    typePillTextActive: {
+    pickerBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.xl,
+    },
+    pickerSheet: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: radius.lg,
+      paddingVertical: spacing.xs,
+      overflow: 'hidden',
+    },
+    pickerOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    pickerOptionText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    pickerOptionTextActive: {
+      fontWeight: '700',
       color: '#DB4438',
     },
     optionsRow: {
@@ -317,8 +355,8 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.xxl,
     },
     footerLogo: {
-      width: 150,
-      height: 110,
+      width: 270,
+      height: 140,
     },
   });
 }
