@@ -86,6 +86,11 @@ export default function MounterWorklist() {
           renderItem={({ item }) => {
             const title =
               fieldOf(item, ['media_name', 'title', 'campaignname', 'campaign_name', 'name']) ?? 'Untitled';
+            const campaignName = fieldOf(item, ['campaign_name', 'campaignname']);
+            const orderNumber = fieldOf(item, ['order_number']);
+            const refLine = [campaignName ? `Campaign: ${campaignName}` : null, orderNumber ? `Ref: ${orderNumber}` : null]
+              .filter(Boolean)
+              .join('  ·  ');
             const subtitle = fieldOf(item, ['location', 'address', 'vendor_name', 'vendorname', 'media_code']);
             const date = fieldOf(item, ['start_date', 'date', 'display_date', 'addedon']);
             const status = fieldOf(item, ['cart_status', 'status']);
@@ -106,6 +111,11 @@ export default function MounterWorklist() {
                     <Text style={styles.title} numberOfLines={1}>
                       {title}
                     </Text>
+                    {refLine ? (
+                      <Text style={styles.subtitle} numberOfLines={1}>
+                        {refLine}
+                      </Text>
+                    ) : null}
                     <Text style={styles.subtitle} numberOfLines={1}>
                       {subtitle ?? date}
                     </Text>

@@ -37,8 +37,8 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primaryStart,
-        tabBarInactiveTintColor: colors.textFaint,
+        tabBarActiveTintColor: colors.onBackground,
+        tabBarInactiveTintColor: colors.onBackgroundMuted,
         tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
       }}
@@ -69,8 +69,8 @@ function createStyles(colors: ThemeColors) {
       height: 76,
       paddingTop: 12,
       paddingBottom: 14,
-      backgroundColor: colors.surfaceElevated,
-      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+      borderTopWidth: 0,
     },
     addButton: {
       width: 60,

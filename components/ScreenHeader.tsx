@@ -23,7 +23,7 @@ export function ScreenHeader({ title }: { title: string }) {
   return (
     <View style={[styles.row, { paddingTop: insets.top, height: headerHeight }]}>
       <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color={colors.text} />
+        <Ionicons name="arrow-back" size={24} color={colors.onBackground} />
       </Pressable>
       <Text style={styles.title} numberOfLines={1}>
         {title}
@@ -43,9 +43,7 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: spacing.lg,
-      backgroundColor: colors.headerOverlay,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
     },
     backButton: {
       marginRight: spacing.md,
@@ -54,7 +52,7 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       fontSize: 20,
       fontWeight: '800',
-      color: colors.text,
+      color: colors.onBackground,
     },
   });
 }

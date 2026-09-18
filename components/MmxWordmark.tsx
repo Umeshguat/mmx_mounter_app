@@ -20,9 +20,9 @@ export function GrowWordmark() {
 }
 
 const SIZE_MAP = {
-  sm: { width: 96, height: 30 },
-  md: { width: 148, height: 46 },
-  lg: { width: 208, height: 64 },
+  sm: { width: 130, height: 69 },
+  md: { width: 148, height: 78 },
+  lg: { width: 208, height: 110 },
 } as const;
 
 const BADGE_VERTICAL_PADDING = spacing.sm;
@@ -44,7 +44,7 @@ export function MmxWordmark({ size = 'md' }: MmxWordmarkProps) {
 
   const image = (
     <Image
-      source={require('../assets/images/mmx-logo.png')}
+      source={require('../assets/images/mmx-cloud-badge.png')}
       style={{ width: dims.width, height: dims.height }}
       resizeMode="contain"
       accessible

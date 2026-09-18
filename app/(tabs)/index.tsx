@@ -45,11 +45,11 @@ export default function Home() {
     <View style={styles.container}>
       <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
         <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
-          <Ionicons name="menu" size={26} color={colors.text} />
+          <Ionicons name="menu" size={26} color={colors.onBackground} />
           <Text style={styles.platformName}>My MediaXchange</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
-          <Ionicons name="notifications-outline" size={24} color={colors.text} />
+          <Ionicons name="notifications-outline" size={24} color={colors.onBackground} />
           <View style={styles.notifDot}>
             <Badge variant="dot" tone="red" size={8} />
           </View>
@@ -180,9 +180,7 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: spacing.lg,
-      backgroundColor: colors.headerOverlay,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
     },
     topBarLeft: {
       flexDirection: 'row',
@@ -192,7 +190,7 @@ function createStyles(colors: ThemeColors) {
       marginLeft: spacing.sm,
       fontSize: 15,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
     },
     notifDot: {
       position: 'absolute',

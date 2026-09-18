@@ -89,12 +89,13 @@ export default function JobProviderWorklist() {
           ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.primaryStart} /> : null}
           renderItem={({ item }) => {
             const title = fieldOf(item, ['media_name', 'title', 'campaignname', 'name']) ?? 'Untitled';
-            const code = fieldOf(item, ['media_code']);
+            const campaignName = fieldOf(item, ['campaign_name', 'campaignname']);
             const orderNumber = fieldOf(item, ['order_number']);
             const mounterName = fieldOf(item, ['mounter_name']);
             const cartId = fieldOf(item, ['cart_id', 'id']);
-            const unassignedSubtitle = [code, orderNumber].filter(Boolean).join(' · ');
-            const subtitle = mounterName ? `Mounter: ${mounterName}` : unassignedSubtitle;
+            const refLine = [campaignName ? `Campaign: ${campaignName}` : null, orderNumber ? `Ref: ${orderNumber}` : null]
+              .filter(Boolean)
+              .join('  ·  ');
             const isAssigned = !!mounterName;
 
             const row = (
@@ -106,9 +107,14 @@ export default function JobProviderWorklist() {
                   <Text style={styles.title} numberOfLines={1}>
                     {title}
                   </Text>
-                  {subtitle ? (
+                  {refLine ? (
                     <Text style={styles.subtitle} numberOfLines={1}>
-                      {subtitle}
+                      {refLine}
+                    </Text>
+                  ) : null}
+                  {mounterName ? (
+                    <Text style={styles.subtitle} numberOfLines={1}>
+                      Mounter: {mounterName}
                     </Text>
                   ) : null}
                 </View>
@@ -125,7 +131,7 @@ export default function JobProviderWorklist() {
                 onPress={() =>
                   router.push({
                     pathname: '/assign-mounter',
-                    params: { cartId, title, subtitle: unassignedSubtitle },
+                    params: { cartId, title, subtitle: refLine },
                   })
                 }
               >

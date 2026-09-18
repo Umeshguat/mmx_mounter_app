@@ -100,7 +100,8 @@ export default function TaskForm() {
           >
             <Card tint="muted" style={styles.section}>
               <Text style={styles.taskTitle}>{task?.media_name ?? task?.campaign_name ?? `Cart #${cartId}`}</Text>
-              {task?.campaign_name ? <Text style={styles.taskSubtitle}>{task.campaign_name}</Text> : null}
+              {task?.campaign_name ? <Text style={styles.taskSubtitle}>Campaign: {task.campaign_name}</Text> : null}
+              {task?.order_number ? <Text style={styles.taskSubtitle}>Ref: {task.order_number}</Text> : null}
               {task?.start_date || task?.end_date ? (
                 <Text style={styles.taskSubtitle}>
                   {task?.start_date ?? ''}

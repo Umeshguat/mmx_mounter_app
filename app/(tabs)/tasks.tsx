@@ -84,7 +84,17 @@ export default function Tasks() {
                   <Text style={styles.title} numberOfLines={1}>
                     {item.media_name ?? `Cart #${item.cart_id}`}
                   </Text>
-                  <Text style={styles.date}>{item.start_date ?? item.order_number ?? ''}</Text>
+                  {item.campaign_name || item.campaignname || item.order_number ? (
+                    <Text style={styles.date} numberOfLines={1}>
+                      {[
+                        item.campaign_name || item.campaignname ? `Campaign: ${item.campaign_name ?? item.campaignname}` : null,
+                        item.order_number ? `Ref: ${item.order_number}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join('  ·  ')}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.date}>{item.start_date ?? ''}</Text>
                 </View>
               </Card>
             </Pressable>
