@@ -47,15 +47,15 @@ export default function WorkSummary() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
-          <Ionicons name="arrow-back" size={24} color={colors.onBackground} />
+          <Ionicons name="arrow-back" size={24} color={colors.onBackgroundIcon} />
           <Text style={styles.pageName}>Work Summary</Text>
         </Pressable>
         <View style={styles.topBarActions}>
           <Pressable onPress={() => setSearchOpen((o) => !o)} hitSlop={10} style={styles.actionIcon}>
-            <Ionicons name={searchOpen ? 'close' : 'search'} size={22} color={colors.onBackground} />
+            <Ionicons name={searchOpen ? 'close' : 'search'} size={22} color={colors.onBackgroundIcon} />
           </Pressable>
           <Pressable onPress={() => setFilterOpen(true)} hitSlop={10}>
-            <Ionicons name="options-outline" size={22} color={colors.onBackground} />
+            <Ionicons name="options-outline" size={22} color={colors.onBackgroundIcon} />
             {activeTag ? <View style={styles.filterDot} /> : null}
           </Pressable>
         </View>
@@ -144,7 +144,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       paddingHorizontal: spacing.lg,
     },
     topBar: {
@@ -235,7 +235,7 @@ function createStyles(colors: ThemeColors) {
     },
     sheet: {
       width: '100%',
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
       padding: spacing.lg,

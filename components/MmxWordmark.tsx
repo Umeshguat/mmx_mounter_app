@@ -1,7 +1,6 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { radius, spacing } from '../theme/spacing';
-import type { ThemeColors } from '../theme/colors';
+import { spacing } from '../theme/spacing';
 
 function Letter({ char, color }: { char: string; color: string }) {
   return <Text style={[styles.letter, { color }]}>{char}</Text>;
@@ -20,8 +19,10 @@ export function GrowWordmark() {
 }
 
 const SIZE_MAP = {
-  sm: { width: 130, height: 69 },
-  md: { width: 148, height: 78 },
+  // Sidebar panel is ~300px wide (minus padding), so this is scaled down
+  // from the `md` size below, proportionally, to avoid clipping.
+  sm: { width: 230, height: 128 },
+  md: { width: 296, height: 165 },
   lg: { width: 208, height: 110 },
 } as const;
 
@@ -38,11 +39,9 @@ type MmxWordmarkProps = {
 };
 
 export function MmxWordmark({ size = 'md' }: MmxWordmarkProps) {
-  const { isDark, colors } = useTheme();
   const dims = SIZE_MAP[size];
-  const badgeStyles = createBadgeStyles(colors);
 
-  const image = (
+  return (
     <Image
       source={require('../assets/images/mmx-cloud-badge.png')}
       style={{ width: dims.width, height: dims.height }}
@@ -51,22 +50,6 @@ export function MmxWordmark({ size = 'md' }: MmxWordmarkProps) {
       accessibilityLabel="MMX - my media xchange"
     />
   );
-
-  if (!isDark) return image;
-
-  return <View style={badgeStyles.badge}>{image}</View>;
-}
-
-function createBadgeStyles(colors: ThemeColors) {
-  return StyleSheet.create({
-    badge: {
-      backgroundColor: colors.white,
-      borderRadius: radius.md,
-      paddingVertical: BADGE_VERTICAL_PADDING,
-      paddingHorizontal: spacing.md,
-      alignSelf: 'flex-start',
-    },
-  });
 }
 
 const styles = StyleSheet.create({

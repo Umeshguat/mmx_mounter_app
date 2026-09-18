@@ -61,7 +61,7 @@ export function BottomNavBar({ active, vendorId }: Props) {
             onPress={destination ? () => router.push(destination) : undefined}
             hitSlop={10}
           >
-            <Ionicons name={item.icon} size={24} color={isActive ? colors.onBackground : colors.onBackgroundMuted} />
+            <Ionicons name={item.icon} size={24} color={isActive ? colors.onBackgroundIcon : colors.onBackgroundIconMuted} />
           </Pressable>
         );
       })}
@@ -78,7 +78,7 @@ function createStyles(colors: ThemeColors, bottomInset: number) {
       height: 76 + bottomInset,
       paddingTop: 12,
       paddingBottom: 14 + bottomInset,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
     },
     item: {
       flex: 1,

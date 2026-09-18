@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { Alert, Animated, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
+import { gradients } from '../theme/colors';
 import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
 import { RateUsModal } from './RateUsModal';
 import { MmxWordmark, WORDMARK_ALLOCATED_HEIGHT } from './MmxWordmark';
-import { ToggleSwitch } from './ToggleSwitch';
 
 type MenuItem = {
   id: string;
@@ -26,7 +27,7 @@ type Props = {
 };
 
 export function SidebarMenu({ visible, onClose }: Props) {
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout, vendor, userProfile } = useApp();
   const [rateModalVisible, setRateModalVisible] = useState(false);
@@ -85,6 +86,12 @@ export function SidebarMenu({ visible, onClose }: Props) {
         <Pressable style={styles.backdrop} onPress={onClose} />
 
         <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
+          <LinearGradient
+            colors={gradients.background}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.header}>
             <View style={styles.logoWrap}>
               <MmxWordmark size="sm" />
@@ -101,14 +108,6 @@ export function SidebarMenu({ visible, onClose }: Props) {
             <Text style={styles.name}>{userProfile?.name ?? 'User'}</Text>
             {userProfile?.mobile ? <Text style={styles.vendorName}>{userProfile.mobile}</Text> : null}
             {vendor ? <Text style={styles.vendorName}>{vendor.name}</Text> : null}
-          </View>
-
-          <View style={styles.themeRow}>
-            <View style={styles.themeRowLeft}>
-              <Ionicons name={isDark ? 'moon' : 'sunny'} size={20} color={colors.onBackground} />
-              <Text style={styles.themeLabel}>Dark Mode</Text>
-            </View>
-            <ToggleSwitch value={isDark} onValueChange={toggleTheme} />
           </View>
 
           <View style={styles.menu}>
@@ -149,7 +148,7 @@ function createStyles(colors: ThemeColors) {
     panel: {
       width: PANEL_WIDTH,
       height: '100%',
-      backgroundColor: colors.background,
+      overflow: 'hidden',
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xxl,
       shadowColor: colors.shadow,
@@ -201,29 +200,9 @@ function createStyles(colors: ThemeColors) {
       fontSize: 13,
       color: colors.onBackgroundMuted,
     },
-    themeRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.md,
-      marginBottom: spacing.sm,
+    menu: {
       borderTopWidth: 1,
       borderTopColor: colors.border,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    themeRowLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    themeLabel: {
-      marginLeft: spacing.md,
-      fontSize: 15,
-      fontWeight: '600',
-      color: colors.onBackground,
-    },
-    menu: {
-      borderTopWidth: 0,
     },
     menuRow: {
       flexDirection: 'row',

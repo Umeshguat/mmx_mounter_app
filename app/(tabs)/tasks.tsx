@@ -38,13 +38,13 @@ export default function Tasks() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
-          <Ionicons name="arrow-back" size={24} color={colors.onBackground} />
+          <Ionicons name="arrow-back" size={24} color={colors.onBackgroundIcon} />
           <Text style={styles.pageName}>My Task</Text>
         </Pressable>
         <View style={styles.topBarActions}>
-          <Ionicons name="search" size={22} color={colors.onBackground} style={styles.actionIcon} />
+          <Ionicons name="search" size={22} color={colors.onBackgroundIcon} style={styles.actionIcon} />
           <View>
-            <Ionicons name="options-outline" size={22} color={colors.onBackground} />
+            <Ionicons name="options-outline" size={22} color={colors.onBackgroundIcon} />
             <View style={styles.filterDot}>
               <Badge variant="dot" tone="red" size={7} />
             </View>
@@ -111,7 +111,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       paddingHorizontal: spacing.lg,
     },
     topBar: {

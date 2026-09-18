@@ -47,7 +47,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
     },
     content: {
       paddingHorizontal: spacing.lg,

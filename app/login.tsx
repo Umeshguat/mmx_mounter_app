@@ -222,7 +222,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     flex: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
     },
     container: {
       flexGrow: 1,

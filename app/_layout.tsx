@@ -1,18 +1,26 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from '../context/AppContext';
-import { ThemeProvider, useTheme } from '../context/ThemeContext';
+import { ThemeProvider } from '../context/ThemeContext';
+import { gradients } from '../theme/colors';
 
 function RootStack() {
-  const { colors } = useTheme();
   return (
     <>
       <StatusBar style="light" />
+      <LinearGradient
+        colors={gradients.background}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
+          contentStyle: { backgroundColor: 'transparent' },
         }}
       >
         <Stack.Screen name="index" />

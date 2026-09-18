@@ -19,7 +19,7 @@ function AddButton() {
 
   return (
     <LinearGradient
-      colors={gradients.primary}
+      colors={gradients.accent}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.addButton}
@@ -37,10 +37,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.onBackground,
-        tabBarInactiveTintColor: colors.onBackgroundMuted,
+        tabBarActiveTintColor: colors.onBackgroundIcon,
+        tabBarInactiveTintColor: colors.onBackgroundIconMuted,
         tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
+        sceneStyle: { backgroundColor: 'transparent' },
       }}
     >
       <Tabs.Screen name="index" options={{ tabBarIcon: TabIcon('home-outline') }} />
@@ -69,7 +70,7 @@ function createStyles(colors: ThemeColors) {
       height: 76,
       paddingTop: 12,
       paddingBottom: 14,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       borderTopWidth: 0,
     },
     addButton: {
