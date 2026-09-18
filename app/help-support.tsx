@@ -97,7 +97,7 @@ function createStyles(colors: ThemeColors) {
     sectionTitle: {
       fontSize: 16,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
       marginBottom: spacing.md,
     },
     faqCard: {

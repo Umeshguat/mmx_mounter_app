@@ -118,7 +118,7 @@ function createStyles(colors: ThemeColors) {
     title: {
       fontSize: 22,
       fontWeight: '800',
-      color: colors.text,
+      color: colors.onBackground,
       marginBottom: spacing.lg,
     },
     card: {

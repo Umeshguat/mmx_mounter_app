@@ -202,18 +202,18 @@ function createStyles(colors: ThemeColors) {
     greeting: {
       fontSize: 30,
       fontWeight: '800',
-      color: colors.text,
+      color: colors.onBackground,
     },
     subGreeting: {
       marginTop: 2,
       fontSize: 15,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
       marginBottom: spacing.lg,
     },
     sectionTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
       marginBottom: spacing.md,
     },
     statsGrid: {

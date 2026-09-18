@@ -116,12 +116,12 @@ function createStyles(colors: ThemeColors) {
     title: {
       fontSize: 30,
       fontWeight: '800',
-      color: colors.text,
+      color: colors.onBackground,
     },
     subtitle: {
       marginTop: spacing.xs,
       fontSize: 15,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
     },
     loading: {
       marginVertical: spacing.md,

@@ -5,10 +5,10 @@ import { AppProvider } from '../context/AppContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 
 function RootStack() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   return (
     <>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerShown: false,

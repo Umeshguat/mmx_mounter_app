@@ -105,7 +105,7 @@ export function SidebarMenu({ visible, onClose }: Props) {
 
           <View style={styles.themeRow}>
             <View style={styles.themeRowLeft}>
-              <Ionicons name={isDark ? 'moon' : 'sunny'} size={20} color={colors.text} />
+              <Ionicons name={isDark ? 'moon' : 'sunny'} size={20} color={colors.onBackground} />
               <Text style={styles.themeLabel}>Dark Mode</Text>
             </View>
             <ToggleSwitch value={isDark} onValueChange={toggleTheme} />
@@ -114,7 +114,7 @@ export function SidebarMenu({ visible, onClose }: Props) {
           <View style={styles.menu}>
             {items.map((item) => (
               <Pressable key={item.id} style={styles.menuRow} onPress={item.onPress}>
-                <Ionicons name={item.icon} size={20} color={item.danger ? colors.danger : colors.text} />
+                <Ionicons name={item.icon} size={20} color={item.danger ? colors.danger : colors.onBackground} />
                 <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>{item.label}</Text>
               </Pressable>
             ))}
@@ -194,12 +194,12 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.sm,
       fontSize: 17,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
     },
     vendorName: {
       marginTop: 2,
       fontSize: 13,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
     },
     themeRow: {
       flexDirection: 'row',
@@ -220,7 +220,7 @@ function createStyles(colors: ThemeColors) {
       marginLeft: spacing.md,
       fontSize: 15,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.onBackground,
     },
     menu: {
       borderTopWidth: 0,
@@ -236,7 +236,7 @@ function createStyles(colors: ThemeColors) {
       marginLeft: spacing.md,
       fontSize: 15,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.onBackground,
     },
     menuLabelDanger: {
       color: colors.danger,

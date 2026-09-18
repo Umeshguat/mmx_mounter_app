@@ -178,7 +178,7 @@ function createStyles(colors: ThemeColors) {
     },
     emptyText: {
       fontSize: 15,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
       textAlign: 'center',
       marginBottom: spacing.lg,
     },

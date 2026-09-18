@@ -3,9 +3,8 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { ILLUSTRATION_SIZE, spacing } from '../theme/spacing';
+import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
-import { GrowWordmark, MmxWordmark } from '../components/MmxWordmark';
 import { useApp } from '../context/AppContext';
 
 export default function Splash() {
@@ -42,26 +41,29 @@ export default function Splash() {
 
       <View style={styles.topSection}>
         <Image
-          source={require('../assets/images/splash-worker.png')}
-          style={styles.illustration}
+          source={require('../assets/images/growth-arrow.png')}
+          style={styles.arrow}
           resizeMode="contain"
         />
       </View>
 
       <View style={styles.headingSection}>
-        <View style={styles.wordmarkRow}>
-          <GrowWordmark />
-          <Text style={styles.plainText}> Your</Text>
+        <Text style={styles.title}>GROW YOUR{'\n'}BUSINESS</Text>
+        <View style={styles.withRow}>
+          <View style={styles.withLine} />
+          <Text style={styles.withText}>WITH</Text>
+          <View style={styles.withLine} />
         </View>
-        <Text style={styles.plainText}>Business</Text>
-        <Text style={styles.plainText}>with</Text>
-        <View style={styles.logoRow}>
-          <MmxWordmark size="lg" />
-        </View>
+
+        <Image
+          source={require('../assets/images/mmx-cloud-badge.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.bottomSection}>
-        <ActivityIndicator color={colors.primaryStart} size="small" />
+        <ActivityIndicator color={colors.onBackground} size="small" />
       </View>
     </View>
   );
@@ -80,9 +82,9 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       paddingTop: spacing.xl + 40,
     },
-    illustration: {
-      width: ILLUSTRATION_SIZE,
-      height: ILLUSTRATION_SIZE,
+    arrow: {
+      width: 220,
+      height: 140,
     },
     headingSection: {
       flex: 1,
@@ -93,21 +95,35 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       paddingBottom: spacing.xl,
     },
-    wordmarkRow: {
+    title: {
+      fontSize: 30,
+      fontWeight: '800',
+      color: colors.onBackground,
+      letterSpacing: 1,
+      lineHeight: 38,
+      textAlign: 'center',
+    },
+    withRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-    },
-    logoRow: {
       marginTop: spacing.md,
-      alignItems: 'center',
+      marginBottom: spacing.xl,
     },
-    plainText: {
-      fontSize: 46,
-      fontWeight: '800',
-      color: colors.text,
-      lineHeight: 50,
-      textAlign: 'center',
+    withLine: {
+      width: 28,
+      height: 1,
+      backgroundColor: colors.onBackgroundMuted,
+      marginHorizontal: spacing.sm,
+    },
+    withText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.onBackgroundMuted,
+      letterSpacing: 2,
+    },
+    logo: {
+      width: 260,
+      height: 190,
     },
   });
 }

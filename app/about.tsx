@@ -64,11 +64,11 @@ function createStyles(colors: ThemeColors) {
     version: {
       marginTop: spacing.xs,
       fontSize: 14,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
     },
     description: {
       fontSize: 15,
-      color: colors.text,
+      color: colors.onBackground,
       lineHeight: 22,
       marginBottom: spacing.xl,
     },

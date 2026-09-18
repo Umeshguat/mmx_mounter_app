@@ -145,7 +145,7 @@ function createStyles(colors: ThemeColors) {
     },
     countText: {
       fontSize: 14,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
       marginBottom: spacing.md,
     },
     row: {
@@ -188,7 +188,7 @@ function createStyles(colors: ThemeColors) {
     emptyText: {
       textAlign: 'center',
       fontSize: 14,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
       marginTop: spacing.xl,
     },
   });

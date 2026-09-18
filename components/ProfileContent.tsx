@@ -97,7 +97,7 @@ function createStyles(colors: ThemeColors) {
     title: {
       fontSize: 30,
       fontWeight: '800',
-      color: colors.text,
+      color: colors.onBackground,
       marginBottom: spacing.lg,
     },
     avatarWrap: {
@@ -131,12 +131,12 @@ function createStyles(colors: ThemeColors) {
     name: {
       fontSize: 20,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
     },
     mobile: {
       marginTop: 2,
       fontSize: 14,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
     },
     menuCard: {
       overflow: 'hidden',

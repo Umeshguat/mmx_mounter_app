@@ -6,6 +6,12 @@ export interface ThemeColors {
   textMuted: string;
   textFaint: string;
 
+  // Text meant to sit directly on `background` (which is now the brand
+  // purple), as opposed to `text`/`textMuted` which are tuned for the white
+  // card surfaces (`surfaceElevated`) that still float on top of it.
+  onBackground: string;
+  onBackgroundMuted: string;
+
   background: string;
   inputBackground: string;
   surfaceMuted: string;
@@ -48,7 +54,10 @@ export const lightColors: ThemeColors = {
   textMuted: '#8A93A6',
   textFaint: '#B7BECC',
 
-  background: '#FFFFFF',
+  onBackground: '#FFFFFF',
+  onBackgroundMuted: '#D6C9EF',
+
+  background: '#5B2C8F',
   inputBackground: '#EDF1FA',
   surfaceMuted: '#F3F5FA',
   surfaceElevated: '#FFFFFF',
@@ -90,7 +99,10 @@ export const darkColors: ThemeColors = {
   textMuted: '#9BA3B4',
   textFaint: '#5B6373',
 
-  background: '#0B0F1A',
+  onBackground: '#FFFFFF',
+  onBackgroundMuted: '#C9B8E8',
+
+  background: '#2E1550',
   inputBackground: '#1B2130',
   surfaceMuted: '#161B27',
   surfaceElevated: '#1B2130',

@@ -47,15 +47,15 @@ export default function WorkSummary() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name="arrow-back" size={24} color={colors.onBackground} />
           <Text style={styles.pageName}>Work Summary</Text>
         </Pressable>
         <View style={styles.topBarActions}>
           <Pressable onPress={() => setSearchOpen((o) => !o)} hitSlop={10} style={styles.actionIcon}>
-            <Ionicons name={searchOpen ? 'close' : 'search'} size={22} color={colors.text} />
+            <Ionicons name={searchOpen ? 'close' : 'search'} size={22} color={colors.onBackground} />
           </Pressable>
           <Pressable onPress={() => setFilterOpen(true)} hitSlop={10}>
-            <Ionicons name="options-outline" size={22} color={colors.text} />
+            <Ionicons name="options-outline" size={22} color={colors.onBackground} />
             {activeTag ? <View style={styles.filterDot} /> : null}
           </Pressable>
         </View>
@@ -161,7 +161,7 @@ function createStyles(colors: ThemeColors) {
       marginLeft: spacing.sm,
       fontSize: 15,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
     },
     topBarActions: {
       flexDirection: 'row',
@@ -216,12 +216,12 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.xl,
       textAlign: 'center',
       fontSize: 14,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
     },
     sectionHeader: {
       fontSize: 14,
       fontWeight: '600',
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
       marginBottom: spacing.sm,
       marginTop: spacing.xs,
     },
@@ -243,7 +243,7 @@ function createStyles(colors: ThemeColors) {
     sheetTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
       marginBottom: spacing.md,
     },
     option: {
@@ -256,7 +256,7 @@ function createStyles(colors: ThemeColors) {
     },
     optionText: {
       fontSize: 16,
-      color: colors.text,
+      color: colors.onBackground,
     },
   });
 }

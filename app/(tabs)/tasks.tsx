@@ -38,13 +38,13 @@ export default function Tasks() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name="arrow-back" size={24} color={colors.onBackground} />
           <Text style={styles.pageName}>My Task</Text>
         </Pressable>
         <View style={styles.topBarActions}>
-          <Ionicons name="search" size={22} color={colors.text} style={styles.actionIcon} />
+          <Ionicons name="search" size={22} color={colors.onBackground} style={styles.actionIcon} />
           <View>
-            <Ionicons name="options-outline" size={22} color={colors.text} />
+            <Ionicons name="options-outline" size={22} color={colors.onBackground} />
             <View style={styles.filterDot}>
               <Badge variant="dot" tone="red" size={7} />
             </View>
@@ -118,7 +118,7 @@ function createStyles(colors: ThemeColors) {
       marginLeft: spacing.sm,
       fontSize: 15,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
     },
     topBarActions: {
       flexDirection: 'row',
@@ -135,7 +135,7 @@ function createStyles(colors: ThemeColors) {
     subtitle: {
       marginTop: 2,
       fontSize: 15,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
       marginBottom: spacing.lg,
     },
     loading: {
@@ -200,12 +200,12 @@ function createStyles(colors: ThemeColors) {
     emptyTitle: {
       fontSize: 17,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.onBackground,
     },
     emptySubtitle: {
       marginTop: spacing.xs,
       fontSize: 14,
-      color: colors.textMuted,
+      color: colors.onBackgroundMuted,
     },
   });
 }
