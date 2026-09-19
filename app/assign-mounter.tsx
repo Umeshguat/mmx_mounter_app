@@ -71,7 +71,7 @@ export default function AssignMounter() {
 
       <Card tint="muted" style={styles.section}>
         <View style={styles.fieldLast}>
-          <Text style={styles.fieldLabel}>Assign to mounter</Text>
+          <Text style={styles.fieldLabel}>{headerTitle}</Text>
           <Dropdown
             icon="person-outline"
             placeholder="Select mounter"
