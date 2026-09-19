@@ -45,11 +45,11 @@ export default function JobProviderDashboard() {
       <View style={styles.mainArea}>
         <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
           <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
-            <Ionicons name="menu" size={26} color={colors.onBackgroundIcon} />
+            <Ionicons name="menu" size={30} color={colors.onBackgroundIcon} />
             <Text style={styles.platformName}>My MediaXchange</Text>
           </Pressable>
           <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
-            <Ionicons name="notifications-outline" size={24} color={colors.onBackgroundIcon} />
+            <Ionicons name="notifications" size={30} color={colors.onBackgroundIcon} />
             <View style={styles.notifDot}>
               <Badge variant="dot" tone="red" size={8} />
             </View>
@@ -106,6 +106,23 @@ export default function JobProviderDashboard() {
                   router.push({
                     pathname: '/job-provider-worklist',
                     params: { type: 'mounter_assigned', vendorId, label: 'Mounter Assigned' },
+                  })
+                }
+              />
+              <StatCard
+                label="Mounting Removal Assigned"
+                value={stats?.mountingRemovalAssignedCount ?? 0}
+                icon="checkmark-done-outline"
+                background={colors.cardPurple}
+                iconColor={colors.cardPurpleIcon}
+                onPress={() =>
+                  router.push({
+                    pathname: '/job-provider-worklist',
+                    params: {
+                      type: 'mounting_removal_assigned',
+                      vendorId,
+                      label: 'Mounting Removal Assigned',
+                    },
                   })
                 }
               />
@@ -191,7 +208,7 @@ function createStyles(colors: ThemeColors) {
     },
     statsError: {
       fontSize: 14,
-      color: colors.danger,
+      color: colors.onBackground,
       marginBottom: spacing.md,
     },
   });

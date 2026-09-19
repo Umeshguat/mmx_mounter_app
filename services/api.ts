@@ -185,6 +185,7 @@ export type JobProviderDashboardResult = {
   mountingWorklistCount: number;
   mountingRemovalCount: number;
   mounterAssignedCount: number;
+  mountingRemovalAssignedCount: number;
   raw: unknown;
 };
 
@@ -209,11 +210,16 @@ export async function getJobProviderDashboard(vendorId: string | number): Promis
     mountingWorklistCount: returndata.mounting_worklist_count,
     mountingRemovalCount: returndata.mounting_removal_count,
     mounterAssignedCount: returndata.mounter_assigned_count,
+    mountingRemovalAssignedCount: returndata.mounting_removal_assigned_count ?? 0,
     raw: body,
   };
 }
 
-export type JobProviderWorklistType = 'mounting_worklist' | 'mounting_removal' | 'mounter_assigned';
+export type JobProviderWorklistType =
+  | 'mounting_worklist'
+  | 'mounting_removal'
+  | 'mounter_assigned'
+  | 'mounting_removal_assigned';
 
 export type JobProviderWorklistResult = {
   items: any[];

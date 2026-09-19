@@ -132,7 +132,7 @@ export default function JobProviderWorklist() {
                 onPress={() =>
                   router.push({
                     pathname: '/assign-mounter',
-                    params: { cartId, title, subtitle: refLine },
+                    params: { cartId, title, subtitle: refLine, type },
                   })
                 }
               >

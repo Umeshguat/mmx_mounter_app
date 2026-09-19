@@ -61,8 +61,8 @@ export const lightColors: ThemeColors = {
   onBackground: '#FFFFFF',
   onBackgroundMuted: '#D6C9EF',
 
-  onBackgroundIcon: 'rgba(255, 255, 255, 0.8)',
-  onBackgroundIconMuted: 'rgba(255, 255, 255, 0.45)',
+  onBackgroundIcon: 'rgba(255, 255, 255, 0.85)',
+  onBackgroundIconMuted: 'rgba(255, 255, 255, 0.6)',
 
   background: '#5B2C8F',
   inputBackground: '#EDF1FA',

@@ -16,7 +16,13 @@ export default function AssignMounter() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
 
-  const { cartId, title, subtitle } = useLocalSearchParams<{ cartId: string; title?: string; subtitle?: string }>();
+  const { cartId, title, subtitle, type } = useLocalSearchParams<{
+    cartId: string;
+    title?: string;
+    subtitle?: string;
+    type?: string;
+  }>();
+  const headerTitle = type === 'mounting_removal' ? 'Assign Mounting Removal' : 'Assign Mounter';
 
   const [mounterOptions, setMounterOptions] = useState<{ id: string; name: string }[]>([]);
   const [mountersError, setMountersError] = useState<string | null>(null);
@@ -48,7 +54,7 @@ export default function AssignMounter() {
 
   return (
     <ScreenGradient style={styles.container}>
-      <ScreenHeader title="Assign Mounter" />
+      <ScreenHeader title={headerTitle} />
 
       <KeyboardAvoidingView
         style={styles.flex}

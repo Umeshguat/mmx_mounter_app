@@ -22,9 +22,9 @@ import { useApp } from '../context/AppContext';
 import { ScreenGradient } from '../components/ScreenGradient';
 
 const LOGIN_TYPE_OPTIONS = [
+  { id: '12', name: 'Other Vendor' },
   { id: '13', name: 'Mounter' },
   { id: '14', name: 'Monitor' },
-  { id: '12', name: 'Other Vendor' },
 ];
 
 const CARD_GRADIENT = ['#F68D7E', '#DB4438'] as const;

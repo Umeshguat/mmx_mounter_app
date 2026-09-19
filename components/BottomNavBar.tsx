@@ -12,10 +12,10 @@ import type { ThemeColors } from '../theme/colors';
 type NavId = 'home' | 'assignList' | 'summary' | 'profile';
 
 const ITEMS: { id: NavId; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { id: 'home', icon: 'home-outline' },
-  { id: 'assignList', icon: 'people-outline' },
-  { id: 'summary', icon: 'document-text-outline' },
-  { id: 'profile', icon: 'person-outline' },
+  { id: 'home', icon: 'home' },
+  { id: 'assignList', icon: 'people' },
+  { id: 'summary', icon: 'document-text' },
+  { id: 'profile', icon: 'person' },
 ];
 
 type Props = {
@@ -61,7 +61,7 @@ export function BottomNavBar({ active, vendorId }: Props) {
             onPress={destination ? () => router.push(destination) : undefined}
             hitSlop={10}
           >
-            <Ionicons name={item.icon} size={24} color={isActive ? colors.onBackgroundIcon : colors.onBackgroundIconMuted} />
+            <Ionicons name={item.icon} size={30} color={isActive ? colors.onBackgroundIcon : colors.onBackgroundIconMuted} />
           </Pressable>
         );
       })}

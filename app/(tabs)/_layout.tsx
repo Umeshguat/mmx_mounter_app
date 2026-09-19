@@ -8,8 +8,8 @@ import { gradients } from '../../theme/colors';
 import type { ThemeColors } from '../../theme/colors';
 
 function TabIcon(name: keyof typeof Ionicons.glyphMap) {
-  return ({ color, size }: { color: ColorValue; size: number }) => (
-    <Ionicons name={name} size={size} color={color as string} />
+  return ({ color }: { color: ColorValue; size: number }) => (
+    <Ionicons name={name} size={30} color={color as string} />
   );
 }
 
@@ -44,8 +44,8 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <Tabs.Screen name="index" options={{ tabBarIcon: TabIcon('home-outline') }} />
-      <Tabs.Screen name="tasks" options={{ tabBarIcon: TabIcon('calendar-outline') }} />
+      <Tabs.Screen name="index" options={{ tabBarIcon: TabIcon('home') }} />
+      <Tabs.Screen name="tasks" options={{ tabBarIcon: TabIcon('calendar') }} />
       <Tabs.Screen
         name="add"
         options={{
@@ -58,8 +58,8 @@ export default function TabsLayout() {
           },
         }}
       />
-      <Tabs.Screen name="work-summary" options={{ tabBarIcon: TabIcon('document-text-outline') }} />
-      <Tabs.Screen name="profile" options={{ tabBarIcon: TabIcon('person-outline') }} />
+      <Tabs.Screen name="work-summary" options={{ tabBarIcon: TabIcon('document-text') }} />
+      <Tabs.Screen name="profile" options={{ tabBarIcon: TabIcon('person') }} />
     </Tabs>
   );
 }
