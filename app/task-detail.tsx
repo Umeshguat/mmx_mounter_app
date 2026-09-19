@@ -19,7 +19,7 @@ import { GradientButton } from '../components/GradientButton';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
-import { getTaskDetail, updateTask } from '../services/api';
+import { getTaskDetail, updateTask, completeTask } from '../services/api';
 
 const META_KEYS = new Set([
   'error',
@@ -89,15 +89,34 @@ export default function TaskDetail() {
 
   const canSubmit = photos.length > 0;
 
+  // Each photo is uploaded to the server as soon as it's picked (the only
+  // backend endpoint for this also handles remarks + task completion, so
+  // this call goes out with empty remarks — "Task Done" below does the
+  // final call with the actual remarks, which also re-confirms every photo).
+  const onAddPhoto = async (image: PickedImage) => {
+    setPhotos((prev) => [...prev, { ...image, uploadStatus: 'uploading' }]);
+    if (!cartId) return;
+    try {
+      await updateTask(cartId, {
+        remarks: '',
+        mountingPhotos: isRemovalJob ? [] : [image],
+        removalPhotos: isRemovalJob ? [image] : [],
+      });
+      setPhotos((prev) =>
+        prev.map((p) => (p.uri === image.uri ? { ...p, uploadStatus: 'uploaded' } : p))
+      );
+    } catch {
+      setPhotos((prev) =>
+        prev.map((p) => (p.uri === image.uri ? { ...p, uploadStatus: 'error' } : p))
+      );
+    }
+  };
+
   const onSubmit = async () => {
     if (!cartId || !canSubmit) return;
     setSubmitting(true);
     try {
-      await updateTask(cartId, {
-        remarks: remarks.trim(),
-        mountingPhotos: isRemovalJob ? [] : photos,
-        removalPhotos: isRemovalJob ? photos : [],
-      });
+      await completeTask(cartId, remarks.trim());
       // The worklist this task came from re-fetches on regaining focus via
       // useFocusEffect — a completed task drops out of "today"/"pending"/etc.
       // server-side, so it disappears from that list once we pop back to it.
@@ -154,11 +173,7 @@ export default function TaskDetail() {
             </Card>
 
             <Card tint="muted" style={styles.section}>
-              <ImagesList
-                label="Upload Photos"
-                images={photos}
-                onAdd={(image) => setPhotos((prev) => [...prev, image])}
-              />
+              <ImagesList label="Upload Photos" images={photos} onAdd={onAddPhoto} />
             </Card>
 
             <GradientButton

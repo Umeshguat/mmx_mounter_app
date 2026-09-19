@@ -499,3 +499,35 @@ export async function updateTask(
     removalPhotos: (returndata.removal_photos ?? []).map((p: any) => ({ photoId: p.photo_id, imageUrl: p.image_url })),
   };
 }
+
+export type CompleteTaskResult = {
+  cartId: number;
+  cartStatus: string;
+};
+
+/**
+ * Mounter marks a task done after its photos are already uploaded (via
+ * updateTask above). Matches POST /field/task/:cartId/status.
+ */
+export async function completeTask(cartId: string | number, remarks: string): Promise<CompleteTaskResult> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/task/${cartId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
+      body: JSON.stringify({ remarks }),
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not mark task done. Please try again.');
+  const returndata = body.returndata;
+
+  return {
+    cartId: returndata.cart_id,
+    cartStatus: returndata.cart_status,
+  };
+}

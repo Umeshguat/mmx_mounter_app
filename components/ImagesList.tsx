@@ -2,7 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { useMemo } from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -11,6 +11,7 @@ import type { ThemeColors } from '../theme/colors';
 export type PickedImage = {
   uri: string;
   sizeLabel: string;
+  uploadStatus?: 'uploading' | 'uploaded' | 'error';
 };
 
 type Props = {
@@ -100,7 +101,26 @@ export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
         {images.map((image, index) => (
           <View key={`${image.uri}-${index}`} style={styles.thumbWrap}>
             <Image source={{ uri: image.uri }} style={styles.thumb} />
-            <Text style={styles.sizeLabel}>{image.sizeLabel}</Text>
+            {image.uploadStatus === 'uploading' ? (
+              <View style={styles.statusOverlay}>
+                <ActivityIndicator color={colors.white} size="small" />
+              </View>
+            ) : image.uploadStatus === 'uploaded' ? (
+              <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
+                <Ionicons name="checkmark" size={12} color={colors.white} />
+              </View>
+            ) : image.uploadStatus === 'error' ? (
+              <View style={[styles.statusBadge, { backgroundColor: colors.danger }]}>
+                <Ionicons name="close" size={12} color={colors.white} />
+              </View>
+            ) : null}
+            <Text style={styles.sizeLabel}>
+              {image.uploadStatus === 'uploading'
+                ? 'Uploading…'
+                : image.uploadStatus === 'error'
+                ? 'Upload failed'
+                : image.sizeLabel}
+            </Text>
           </View>
         ))}
       </View>
@@ -150,6 +170,23 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.surfaceMuted,
       borderWidth: 1,
       borderColor: colors.border,
+    },
+    statusOverlay: {
+      ...StyleSheet.absoluteFill,
+      borderRadius: radius.md,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    statusBadge: {
+      position: 'absolute',
+      top: 4,
+      right: 4,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     sizeLabel: {
       marginTop: 4,
