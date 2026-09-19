@@ -30,17 +30,17 @@ const META_KEYS = new Set([
   'media_type',
   'quantity',
   'mounter_id',
+  'cart_status',
+  'added_on',
+  'media_name',
 ]);
 
 const LABEL_OVERRIDES: Record<string, string> = {
   order_number: 'Order Number',
-  media_name: 'Media Name',
   media_code: 'Media Code',
-  cart_status: 'Status',
   start_date: 'Start Date',
   end_date: 'End Date',
   mounter_name: 'Mounter',
-  added_on: 'Added On',
   vendor_name: 'Vendor',
 };
 
@@ -162,7 +162,7 @@ export default function TaskDetail() {
             </Card>
 
             <GradientButton
-              label="Submit"
+              label="Task Done"
               icon="checkmark"
               onPress={onSubmit}
               loading={submitting}

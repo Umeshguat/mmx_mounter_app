@@ -104,6 +104,11 @@ export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
           </View>
         ))}
       </View>
+
+      <Pressable style={styles.uploadButton} onPress={addImage}>
+        <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryStart} />
+        <Text style={styles.uploadButtonText}>Upload Photo</Text>
+      </Pressable>
     </View>
   );
 }
@@ -150,6 +155,22 @@ function createStyles(colors: ThemeColors) {
       marginTop: 4,
       fontSize: 11,
       color: colors.textMuted,
+    },
+    uploadButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: colors.primaryStart,
+      gap: spacing.xs,
+    },
+    uploadButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.primaryStart,
     },
   });
 }
