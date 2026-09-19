@@ -29,10 +29,7 @@ export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const addFromResult = async (result: ImagePicker.ImagePickerResult) => {
-    if (result.canceled || result.assets.length === 0) return;
-    const asset = result.assets[0];
-
+  const addAsset = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
       const context = ImageManipulator.manipulate(asset.uri);
       if (asset.width > MAX_WIDTH) {
@@ -57,6 +54,13 @@ export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
     }
   };
 
+  const addFromResult = async (result: ImagePicker.ImagePickerResult) => {
+    if (result.canceled || result.assets.length === 0) return;
+    for (const asset of result.assets) {
+      await addAsset(asset);
+    }
+  };
+
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
@@ -70,6 +74,7 @@ export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.9,
+      allowsMultipleSelection: true,
     });
     addFromResult(result);
   };

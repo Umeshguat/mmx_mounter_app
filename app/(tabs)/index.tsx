@@ -10,6 +10,7 @@ import { StatCard } from '../../components/StatCard';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
 import { SidebarMenu } from '../../components/SidebarMenu';
+import { ScreenGradient } from '../../components/ScreenGradient';
 import { useApp } from '../../context/AppContext';
 import { getMounterDashboard, type MounterDashboardResult } from '../../services/api';
 import { recentActivity } from '../../data/mockData';
@@ -42,7 +43,7 @@ export default function Home() {
 
   return (
     <>
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
         <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
           <Ionicons name="menu" size={26} color={colors.onBackgroundIcon} />
@@ -151,7 +152,7 @@ export default function Home() {
         </Pressable>
       ))}
       </ScrollView>
-    </View>
+    </ScreenGradient>
     <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );

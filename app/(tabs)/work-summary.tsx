@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { radius, spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { WorkSummaryRow } from '../../components/WorkSummaryRow';
+import { ScreenGradient } from '../../components/ScreenGradient';
 import { workSummary, type WorkSummaryEntry } from '../../data/mockData';
 
 const TAG_OPTIONS: WorkSummaryEntry['tag'][] = ['Note added', 'Location added', 'Image added'];
@@ -44,7 +45,7 @@ export default function WorkSummary() {
 
   return (
     <>
-    <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
+    <ScreenGradient style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
           <Ionicons name="arrow-back" size={24} color={colors.onBackgroundIcon} />
@@ -104,7 +105,7 @@ export default function WorkSummary() {
           stickySectionHeadersEnabled={false}
         />
       )}
-    </View>
+    </ScreenGradient>
 
     <Modal visible={filterOpen} transparent animationType="slide" onRequestClose={() => setFilterOpen(false)}>
       <Pressable style={styles.backdrop} onPress={() => setFilterOpen(false)}>

@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { ProfileContent } from '../../components/ProfileContent';
+import { ScreenGradient } from '../../components/ScreenGradient';
 
 export default function Profile() {
   const { colors } = useTheme();
@@ -12,12 +13,11 @@ export default function Profile() {
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
-    >
-      <ProfileContent />
-    </ScrollView>
+    <ScreenGradient style={styles.container}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}>
+        <ProfileContent />
+      </ScrollView>
+    </ScreenGradient>
   );
 }
 

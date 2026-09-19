@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
+import { ScreenGradient } from '../components/ScreenGradient';
 import { Card } from '../components/Card';
 import { faqs, supportContact, type FaqItem } from '../data/mockData';
 
@@ -38,7 +39,7 @@ export default function HelpSupport() {
   const headerHeight = useScreenHeaderHeight();
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <ScreenHeader title="Help & Support" />
 
       <ScrollView
@@ -67,7 +68,7 @@ export default function HelpSupport() {
         ))}
       </Card>
       </ScrollView>
-    </View>
+    </ScreenGradient>
   );
 }
 

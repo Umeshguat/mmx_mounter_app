@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { ProfileContent } from '../components/ProfileContent';
+import { ScreenGradient } from '../components/ScreenGradient';
 
 // Deliberately a standalone route (not (tabs)/profile.tsx) — pushing into the
 // (tabs) group would mount the mounter's Tabs navigator (and its "+" button)
@@ -15,12 +16,11 @@ export default function JobProviderProfile() {
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
-    >
-      <ProfileContent />
-    </ScrollView>
+    <ScreenGradient style={styles.container}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}>
+        <ProfileContent />
+      </ScrollView>
+    </ScreenGradient>
   );
 }
 

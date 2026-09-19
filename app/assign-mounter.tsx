@@ -8,6 +8,7 @@ import { Card } from '../components/Card';
 import { Dropdown } from '../components/Dropdown';
 import { GradientButton } from '../components/GradientButton';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
+import { ScreenGradient } from '../components/ScreenGradient';
 import { assignMounter, getMounters } from '../services/api';
 
 export default function AssignMounter() {
@@ -46,7 +47,7 @@ export default function AssignMounter() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <ScreenHeader title="Assign Mounter" />
 
       <KeyboardAvoidingView
@@ -87,7 +88,7 @@ export default function AssignMounter() {
       />
       </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenGradient>
   );
 }
 

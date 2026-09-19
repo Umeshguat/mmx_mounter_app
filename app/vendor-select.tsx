@@ -19,6 +19,7 @@ import { ILLUSTRATION_SIZE, radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
 import { getSelectableVendors } from '../services/api';
+import { ScreenGradient } from '../components/ScreenGradient';
 
 type VendorOption = { id: string; name: string };
 
@@ -76,7 +77,7 @@ export default function VendorSelect() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <View style={styles.illustrationWrap}>
         <Image
           source={require('../assets/images/vendor-handshake.png')}
@@ -163,7 +164,7 @@ export default function VendorSelect() {
           </View>
         </Pressable>
       </Modal>
-    </View>
+    </ScreenGradient>
   );
 }
 

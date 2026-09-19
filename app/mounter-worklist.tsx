@@ -7,6 +7,7 @@ import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
+import { ScreenGradient } from '../components/ScreenGradient';
 import { getMounterWorklist, type MounterWorklistType } from '../services/api';
 
 function fieldOf(item: any, keys: string[]): string | undefined {
@@ -63,7 +64,7 @@ export default function MounterWorklist() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <ScreenHeader title={label ?? 'Worklist'} />
 
       {loading ? (
@@ -130,7 +131,7 @@ export default function MounterWorklist() {
           ListEmptyComponent={<Text style={styles.emptyText}>No records found.</Text>}
         />
       )}
-    </View>
+    </ScreenGradient>
   );
 }
 

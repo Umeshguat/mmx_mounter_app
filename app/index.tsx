@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
+import { ScreenGradient } from '../components/ScreenGradient';
 
 export default function Splash() {
   const { isLoading, isLoggedIn, vendor, userProfile } = useApp();
@@ -36,7 +37,7 @@ export default function Splash() {
   }, [isLoading, isLoggedIn, vendor, userProfile]);
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <StatusBar hidden />
 
       <View style={styles.centerSection}>
@@ -65,7 +66,7 @@ export default function Splash() {
       <View style={styles.bottomSection}>
         <ActivityIndicator color={colors.onBackground} size="small" />
       </View>
-    </View>
+    </ScreenGradient>
   );
 }
 

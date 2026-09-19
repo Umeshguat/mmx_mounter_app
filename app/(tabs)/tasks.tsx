@@ -8,6 +8,7 @@ import { radius, spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
+import { ScreenGradient } from '../../components/ScreenGradient';
 import { getMounterWorklist, type MounterWorklistType } from '../../services/api';
 
 const OVERVIEW_TYPES: MounterWorklistType[] = ['today', 'pending', 'advance'];
@@ -35,7 +36,7 @@ export default function Tasks() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
+    <ScreenGradient style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.push('/(tabs)')} hitSlop={10} style={styles.topBarLeft}>
           <Ionicons name="arrow-back" size={24} color={colors.onBackgroundIcon} />
@@ -103,7 +104,7 @@ export default function Tasks() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </ScreenGradient>
   );
 }
 

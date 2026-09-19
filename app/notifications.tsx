@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
+import { ScreenGradient } from '../components/ScreenGradient';
 import { Card } from '../components/Card';
 import { notifications, type NotificationItem } from '../data/mockData';
 
@@ -32,7 +33,7 @@ export default function Notifications() {
   const headerHeight = useScreenHeaderHeight();
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <ScreenHeader title="Notification" />
 
       <FlatList
@@ -42,7 +43,7 @@ export default function Notifications() {
         contentContainerStyle={[styles.listContent, { paddingTop: headerHeight + spacing.lg }]}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </ScreenGradient>
   );
 }
 

@@ -1,29 +1,46 @@
 import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
+import { TextField } from '../components/TextField';
 import { GradientButton } from '../components/GradientButton';
+import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
-import { getTaskDetail } from '../services/api';
+import { ScreenGradient } from '../components/ScreenGradient';
+import { getTaskDetail, updateTask } from '../services/api';
 
-const META_KEYS = new Set(['error', 'errorcode']);
+const META_KEYS = new Set([
+  'error',
+  'errorcode',
+  'cart_id',
+  'campaign_id',
+  'media_id',
+  'media_type',
+  'quantity',
+  'mounter_id',
+]);
 
 const LABEL_OVERRIDES: Record<string, string> = {
-  cart_id: 'Cart ID',
   order_number: 'Order Number',
   media_name: 'Media Name',
   media_code: 'Media Code',
-  media_type: 'Media Type',
   cart_status: 'Status',
   start_date: 'Start Date',
   end_date: 'End Date',
   mounter_name: 'Mounter',
   added_on: 'Added On',
-  campaign_id: 'Campaign ID',
-  media_id: 'Media ID',
   vendor_name: 'Vendor',
 };
 
@@ -41,9 +58,19 @@ export default function TaskDetail() {
   const headerHeight = useScreenHeaderHeight();
   const { cartId, type } = useLocalSearchParams<{ cartId: string; type?: string }>();
 
+  // Worklist type tells us which kind of task this is: mounting_removal/
+  // pending_mounting_removal are removal jobs, everything else (today/pending/
+  // advance/unknown) is treated as a mounting job — either way only one photo
+  // set is ever relevant for a given task, so there's a single upload section.
+  const isRemovalJob = type === 'mounting_removal' || type === 'pending_mounting_removal';
+
   const [task, setTask] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [remarks, setRemarks] = useState('');
+  const [photos, setPhotos] = useState<PickedImage[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!cartId) return;
@@ -60,8 +87,32 @@ export default function TaskDetail() {
     : [];
   const title = task?.media_name ?? task?.title ?? 'Task Detail';
 
+  const canSubmit = photos.length > 0;
+
+  const onSubmit = async () => {
+    if (!cartId || !canSubmit) return;
+    setSubmitting(true);
+    try {
+      await updateTask(cartId, {
+        remarks: remarks.trim(),
+        mountingPhotos: isRemovalJob ? [] : photos,
+        removalPhotos: isRemovalJob ? photos : [],
+      });
+      // The worklist this task came from re-fetches on regaining focus via
+      // useFocusEffect — a completed task drops out of "today"/"pending"/etc.
+      // server-side, so it disappears from that list once we pop back to it.
+      Alert.alert('Task updated', 'Your remarks and photos have been submitted.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (err) {
+      Alert.alert('Could not update task', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <ScreenHeader title="Task Detail" />
 
       {loading ? (
@@ -72,27 +123,56 @@ export default function TaskDetail() {
       ) : error ? (
         <Text style={[styles.errorText, { marginTop: headerHeight + spacing.lg }]}>{error}</Text>
       ) : (
-        <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}>
-          <Text style={styles.title}>{title}</Text>
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView
+            contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={styles.title}>{title}</Text>
 
-          <Card tint="muted" style={styles.card}>
-            {rows.map(([key, value], index) => (
-              <View key={key} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
-                <Text style={styles.label}>{humanizeKey(key)}</Text>
-                <Text style={styles.value}>{String(value)}</Text>
-              </View>
-            ))}
-          </Card>
+            <Card tint="muted" style={styles.card}>
+              {rows.map(([key, value], index) => (
+                <View key={key} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
+                  <Text style={styles.label}>{humanizeKey(key)}</Text>
+                  <Text style={styles.value}>{String(value)}</Text>
+                </View>
+              ))}
+            </Card>
 
-          <GradientButton
-            label="Complete Task"
-            icon="camera"
-            onPress={() => router.push({ pathname: '/task-form', params: { cartId, type } })}
-            style={styles.completeButton}
-          />
-        </ScrollView>
+            <Card tint="muted" style={styles.section}>
+              <Text style={styles.fieldLabel}>Remarks</Text>
+              <TextField
+                icon="chatbubble-ellipses-outline"
+                placeholder="Enter remarks for this visit"
+                value={remarks}
+                onChangeText={setRemarks}
+                multiline
+                numberOfLines={3}
+                style={styles.remarksInput}
+              />
+            </Card>
+
+            <Card tint="muted" style={styles.section}>
+              <ImagesList
+                label="Upload Photos"
+                images={photos}
+                onAdd={(image) => setPhotos((prev) => [...prev, image])}
+              />
+            </Card>
+
+            <GradientButton
+              label="Submit"
+              icon="checkmark"
+              onPress={onSubmit}
+              loading={submitting}
+              disabled={!canSubmit}
+              style={styles.submitButton}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
       )}
-    </View>
+    </ScreenGradient>
   );
 }
 
@@ -102,9 +182,12 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: 'transparent',
     },
+    flex: {
+      flex: 1,
+    },
     content: {
       paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.xl,
+      paddingBottom: spacing.xxl,
     },
     loading: {
       alignSelf: 'center',
@@ -124,8 +207,23 @@ function createStyles(colors: ThemeColors) {
     card: {
       paddingVertical: 0,
       paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
     },
-    completeButton: {
+    section: {
+      marginBottom: spacing.md,
+    },
+    fieldLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.xs,
+    },
+    remarksInput: {
+      height: 80,
+      paddingTop: spacing.sm,
+      textAlignVertical: 'top',
+    },
+    submitButton: {
       marginTop: spacing.lg,
     },
     row: {

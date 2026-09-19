@@ -19,6 +19,7 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
+import { ScreenGradient } from '../components/ScreenGradient';
 
 const LOGIN_TYPE_OPTIONS = [
   { id: '13', name: 'Mounter' },
@@ -60,6 +61,7 @@ export default function Login() {
   };
 
   return (
+    <ScreenGradient>
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -150,6 +152,7 @@ export default function Login() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </ScreenGradient>
   );
 }
 

@@ -10,6 +10,7 @@ import { StatCard } from '../components/StatCard';
 import { Badge } from '../components/Badge';
 import { SidebarMenu } from '../components/SidebarMenu';
 import { BottomNavBar } from '../components/BottomNavBar';
+import { ScreenGradient } from '../components/ScreenGradient';
 import { getJobProviderDashboard, type JobProviderDashboardResult } from '../services/api';
 
 const HEADER_CONTENT_HEIGHT = 56;
@@ -40,7 +41,7 @@ export default function JobProviderDashboard() {
 
   return (
     <>
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <View style={styles.mainArea}>
         <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
           <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
@@ -113,7 +114,7 @@ export default function JobProviderDashboard() {
         </ScrollView>
       </View>
       <BottomNavBar active="home" vendorId={vendorId} />
-    </View>
+    </ScreenGradient>
     <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );

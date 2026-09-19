@@ -6,6 +6,7 @@ import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
+import { ScreenGradient } from '../components/ScreenGradient';
 import { MmxWordmark, WORDMARK_ALLOCATED_HEIGHT } from '../components/MmxWordmark';
 import { aboutInfo } from '../data/mockData';
 
@@ -15,7 +16,7 @@ export default function About() {
   const headerHeight = useScreenHeaderHeight();
 
   return (
-    <View style={styles.container}>
+    <ScreenGradient style={styles.container}>
       <ScreenHeader title="About MMX" />
 
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}>
@@ -39,7 +40,7 @@ export default function About() {
         </View>
       </Card>
       </ScrollView>
-    </View>
+    </ScreenGradient>
   );
 }
 
