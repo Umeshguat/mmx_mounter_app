@@ -17,6 +17,8 @@ export type PickedImage = {
 type Props = {
   images: PickedImage[];
   onAdd: (image: PickedImage) => void;
+  onUpload: () => void;
+  uploading?: boolean;
   label?: string;
 };
 
@@ -26,7 +28,7 @@ type Props = {
 // small without a visible quality loss for a mounting/removal proof photo.
 const MAX_WIDTH = 1200;
 
-export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
+export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add images' }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -125,9 +127,19 @@ export function ImagesList({ images, onAdd, label = 'Add images' }: Props) {
         ))}
       </View>
 
-      <Pressable style={styles.uploadButton} onPress={addImage}>
-        <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryStart} />
-        <Text style={styles.uploadButtonText}>Upload Photo</Text>
+      <Pressable
+        style={[styles.uploadButton, (uploading || images.length === 0) && styles.uploadButtonDisabled]}
+        onPress={onUpload}
+        disabled={uploading || images.length === 0}
+      >
+        {uploading ? (
+          <ActivityIndicator color={colors.primaryStart} size="small" />
+        ) : (
+          <>
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryStart} />
+            <Text style={styles.uploadButtonText}>Upload Photo</Text>
+          </>
+        )}
       </Pressable>
     </View>
   );
@@ -200,14 +212,16 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.md,
       paddingVertical: spacing.sm,
       borderRadius: radius.pill,
-      borderWidth: 1,
-      borderColor: colors.primaryStart,
+      backgroundColor: colors.cardBlue,
       gap: spacing.xs,
     },
     uploadButtonText: {
       fontSize: 14,
       fontWeight: '600',
       color: colors.primaryStart,
+    },
+    uploadButtonDisabled: {
+      opacity: 0.5,
     },
   });
 }

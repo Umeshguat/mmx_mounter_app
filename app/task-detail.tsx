@@ -70,6 +70,7 @@ export default function TaskDetail() {
 
   const [remarks, setRemarks] = useState('');
   const [photos, setPhotos] = useState<PickedImage[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -87,36 +88,60 @@ export default function TaskDetail() {
     : [];
   const title = task?.media_name ?? task?.title ?? 'Task Detail';
 
-  const canSubmit = photos.length > 0;
+  const hasUploadedPhoto = photos.some((p) => p.uploadStatus === 'uploaded');
+  const canSubmit = hasUploadedPhoto;
 
-  // Each photo is uploaded to the server as soon as it's picked (the only
-  // backend endpoint for this also handles remarks + task completion, so
-  // this call goes out with empty remarks — "Task Done" below does the
-  // final call with the actual remarks, which also re-confirms every photo).
-  const onAddPhoto = async (image: PickedImage) => {
-    setPhotos((prev) => [...prev, { ...image, uploadStatus: 'uploading' }]);
+  // Picking a photo only stages it locally — no API call here. The actual
+  // upload only happens when "Upload Photo" is pressed below.
+  const onAddPhoto = (image: PickedImage) => {
+    setPhotos((prev) => [...prev, image]);
+  };
+
+  // Uploads every photo that hasn't been uploaded yet, in one explicit
+  // button press. The server requires a non-empty remarks field on every
+  // /update call, so this reuses whatever's currently typed in the Remarks
+  // box (falling back to a default if it's still empty) — "Task Done" below
+  // does the separate final call that actually completes the task.
+  const onUploadPhotos = async () => {
     if (!cartId) return;
+    const pending = photos.filter((p) => p.uploadStatus !== 'uploaded');
+    if (pending.length === 0) return;
+
+    setUploading(true);
+    setPhotos((prev) =>
+      prev.map((p) => (p.uploadStatus !== 'uploaded' ? { ...p, uploadStatus: 'uploading' } : p))
+    );
     try {
       await updateTask(cartId, {
-        remarks: '',
-        mountingPhotos: isRemovalJob ? [] : [image],
-        removalPhotos: isRemovalJob ? [image] : [],
+        remarks: remarks.trim() || 'Photo uploaded',
+        mountingPhotos: isRemovalJob ? [] : pending,
+        removalPhotos: isRemovalJob ? pending : [],
       });
       setPhotos((prev) =>
-        prev.map((p) => (p.uri === image.uri ? { ...p, uploadStatus: 'uploaded' } : p))
+        prev.map((p) => (p.uploadStatus === 'uploading' ? { ...p, uploadStatus: 'uploaded' } : p))
       );
-    } catch {
+    } catch (err) {
       setPhotos((prev) =>
-        prev.map((p) => (p.uri === image.uri ? { ...p, uploadStatus: 'error' } : p))
+        prev.map((p) => (p.uploadStatus === 'uploading' ? { ...p, uploadStatus: 'error' } : p))
       );
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setUploading(false);
     }
   };
 
   const onSubmit = async () => {
-    if (!cartId || !canSubmit) return;
+    if (!cartId) {
+      Alert.alert('Could not update task', 'This task is missing its ID — please go back and open it again.');
+      return;
+    }
+    if (!canSubmit) {
+      Alert.alert('Upload a photo first', 'Please tap "Upload Photo" and wait for it to finish before marking this task done.');
+      return;
+    }
     setSubmitting(true);
     try {
-      await completeTask(cartId, remarks.trim());
+      await completeTask(cartId, remarks.trim(), isRemovalJob ? 11 : 5);
       // The worklist this task came from re-fetches on regaining focus via
       // useFocusEffect — a completed task drops out of "today"/"pending"/etc.
       // server-side, so it disappears from that list once we pop back to it.
@@ -173,7 +198,13 @@ export default function TaskDetail() {
             </Card>
 
             <Card tint="muted" style={styles.section}>
-              <ImagesList label="Upload Photos" images={photos} onAdd={onAddPhoto} />
+              <ImagesList
+                label="Upload Photos"
+                images={photos}
+                onAdd={onAddPhoto}
+                onUpload={onUploadPhotos}
+                uploading={uploading}
+              />
             </Card>
 
             <GradientButton
@@ -181,7 +212,6 @@ export default function TaskDetail() {
               icon="checkmark"
               onPress={onSubmit}
               loading={submitting}
-              disabled={!canSubmit}
               style={styles.submitButton}
             />
           </ScrollView>

@@ -505,11 +505,19 @@ export type CompleteTaskResult = {
   cartStatus: string;
 };
 
+// Only two terminal values are accepted by the server: 5 for a completed
+// mounting job, 11 for a completed removal job.
+export type CartCompletionStatus = 5 | 11;
+
 /**
  * Mounter marks a task done after its photos are already uploaded (via
  * updateTask above). Matches POST /field/task/:cartId/status.
  */
-export async function completeTask(cartId: string | number, remarks: string): Promise<CompleteTaskResult> {
+export async function completeTask(
+  cartId: string | number,
+  remarks: string,
+  cartStatus: CartCompletionStatus
+): Promise<CompleteTaskResult> {
   const authHeaders = await getAuthHeaders();
 
   let response: Response;
@@ -517,7 +525,7 @@ export async function completeTask(cartId: string | number, remarks: string): Pr
     response = await fetch(`${API_BASE_URL}/app-api/field/task/${cartId}/status`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify({ remarks }),
+      body: JSON.stringify({ remarks, cart_status: cartStatus }),
     });
   } catch {
     throw new Error('Could not reach the server. Check your connection and try again.');
