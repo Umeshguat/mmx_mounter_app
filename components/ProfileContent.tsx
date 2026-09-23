@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../context/SettingsContext';
 import { spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { useApp } from '../context/AppContext';
@@ -28,6 +29,7 @@ export function ProfileContent() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout, userProfile } = useApp();
+  const { geotagPhotos, setGeotagPhotos } = useSettings();
   const [rateModalVisible, setRateModalVisible] = useState(false);
 
   const onLogout = () => {
@@ -70,6 +72,16 @@ export function ProfileContent() {
       </View>
 
       <Card tint="surface" padding={0} style={styles.menuCard}>
+        <View style={styles.menuRow}>
+          <Ionicons name="location-outline" size={22} color={colors.text} />
+          <Text style={styles.menuLabel}>Geotag Photos</Text>
+          <Switch
+            value={geotagPhotos}
+            onValueChange={setGeotagPhotos}
+            trackColor={{ false: colors.border, true: colors.primaryStart }}
+            thumbColor={colors.white}
+          />
+        </View>
         {items.map((item, index) => (
           <Pressable
             key={item.id}
@@ -148,6 +160,7 @@ function createStyles(colors: ThemeColors) {
       borderBottomWidth: 0,
     },
     menuLabel: {
+      flex: 1,
       marginLeft: spacing.md,
       fontSize: 16,
       fontWeight: '600',

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
-import { Alert, Animated, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, Dimensions, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../context/SettingsContext';
 import { spacing } from '../theme/spacing';
 import { gradients } from '../theme/colors';
 import type { ThemeColors } from '../theme/colors';
@@ -30,6 +31,7 @@ export function SidebarMenu({ visible, onClose }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout, vendor, userProfile } = useApp();
+  const { geotagPhotos, setGeotagPhotos } = useSettings();
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
 
@@ -111,6 +113,16 @@ export function SidebarMenu({ visible, onClose }: Props) {
           </View>
 
           <View style={styles.menu}>
+            <View style={styles.menuRow}>
+              <Ionicons name="location-outline" size={20} color={colors.onBackground} />
+              <Text style={styles.menuLabel}>Geotag Photos</Text>
+              <Switch
+                value={geotagPhotos}
+                onValueChange={setGeotagPhotos}
+                trackColor={{ false: colors.border, true: colors.primaryStart }}
+                thumbColor={colors.white}
+              />
+            </View>
             {items.map((item) => (
               <Pressable key={item.id} style={styles.menuRow} onPress={item.onPress}>
                 <Ionicons name={item.icon} size={20} color={item.danger ? colors.danger : colors.onBackground} />
@@ -212,6 +224,7 @@ function createStyles(colors: ThemeColors) {
       borderBottomColor: colors.border,
     },
     menuLabel: {
+      flex: 1,
       marginLeft: spacing.md,
       fontSize: 15,
       fontWeight: '600',

@@ -1,25 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { spacing } from '../theme/spacing';
+import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
-import { TextField } from '../components/TextField';
 import { GradientButton } from '../components/GradientButton';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
 import { getTaskDetail, updateTask, completeTask } from '../services/api';
+
+// No remarks UI anymore, but the backend still requires a non-empty
+// `remarks` field on both /update (photo upload) and /status (task done).
+const DEFAULT_REMARKS = 'Task completed via mobile app';
+
+// Fields pulled out into the dedicated media block up top, so they're
+// hidden from the generic key/value table below to avoid duplication.
+const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image', 'media_photo_url'];
+const MEDIA_SIZE_KEYS = ['media_size', 'size', 'hoarding_size', 'board_size'];
+const LIGHT_TYPE_KEYS = ['light_type', 'lighting_type', 'light'];
+const LOCATION_KEYS = ['location', 'address', 'site_location', 'site_address'];
 
 const META_KEYS = new Set([
   'error',
@@ -33,6 +35,10 @@ const META_KEYS = new Set([
   'cart_status',
   'added_on',
   'media_name',
+  ...MEDIA_PHOTO_KEYS,
+  ...MEDIA_SIZE_KEYS,
+  ...LIGHT_TYPE_KEYS,
+  ...LOCATION_KEYS,
 ]);
 
 const LABEL_OVERRIDES: Record<string, string> = {
@@ -52,6 +58,14 @@ function humanizeKey(key: string): string {
     .join(' ');
 }
 
+function fieldOf(task: Record<string, any> | null, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = task?.[key];
+    if (value !== undefined && value !== null && value !== '') return String(value);
+  }
+  return undefined;
+}
+
 export default function TaskDetail() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -68,7 +82,6 @@ export default function TaskDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [remarks, setRemarks] = useState('');
   const [photos, setPhotos] = useState<PickedImage[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -87,6 +100,10 @@ export default function TaskDetail() {
     ? Object.entries(task).filter(([key, value]) => !META_KEYS.has(key) && value !== null && value !== '')
     : [];
   const title = task?.media_name ?? task?.title ?? 'Task Detail';
+  const mediaPhoto = fieldOf(task, MEDIA_PHOTO_KEYS);
+  const location = fieldOf(task, LOCATION_KEYS);
+  const mediaSize = fieldOf(task, MEDIA_SIZE_KEYS);
+  const lightType = fieldOf(task, LIGHT_TYPE_KEYS);
 
   const hasUploadedPhoto = photos.some((p) => p.uploadStatus === 'uploaded');
   const canSubmit = hasUploadedPhoto;
@@ -98,10 +115,7 @@ export default function TaskDetail() {
   };
 
   // Uploads every photo that hasn't been uploaded yet, in one explicit
-  // button press. The server requires a non-empty remarks field on every
-  // /update call, so this reuses whatever's currently typed in the Remarks
-  // box (falling back to a default if it's still empty) — "Task Done" below
-  // does the separate final call that actually completes the task.
+  // button press. "Task Done" below does the separate final call.
   const onUploadPhotos = async () => {
     if (!cartId) return;
     const pending = photos.filter((p) => p.uploadStatus !== 'uploaded');
@@ -113,7 +127,7 @@ export default function TaskDetail() {
     );
     try {
       await updateTask(cartId, {
-        remarks: remarks.trim() || 'Photo uploaded',
+        remarks: DEFAULT_REMARKS,
         mountingPhotos: isRemovalJob ? [] : pending,
         removalPhotos: isRemovalJob ? pending : [],
       });
@@ -141,11 +155,11 @@ export default function TaskDetail() {
     }
     setSubmitting(true);
     try {
-      await completeTask(cartId, remarks.trim(), isRemovalJob ? 11 : 5);
+      await completeTask(cartId, DEFAULT_REMARKS, isRemovalJob ? 11 : 5);
       // The worklist this task came from re-fetches on regaining focus via
       // useFocusEffect — a completed task drops out of "today"/"pending"/etc.
       // server-side, so it disappears from that list once we pop back to it.
-      Alert.alert('Task updated', 'Your remarks and photos have been submitted.', [
+      Alert.alert('Task updated', 'Your photos have been submitted.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err) {
@@ -167,55 +181,64 @@ export default function TaskDetail() {
       ) : error ? (
         <Text style={[styles.errorText, { marginTop: headerHeight + spacing.lg }]}>{error}</Text>
       ) : (
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <Card tint="muted" style={styles.mediaCard}>
+            {mediaPhoto ? (
+              <Image source={{ uri: mediaPhoto }} style={styles.mediaPhoto} resizeMode="cover" />
+            ) : (
+              <View style={styles.mediaPhotoPlaceholder}>
+                <Ionicons name="image-outline" size={32} color={colors.textFaint} />
+              </View>
+            )}
             <Text style={styles.title}>{title}</Text>
+            {location ? <Text style={styles.location}>{location}</Text> : null}
 
-            <Card tint="muted" style={styles.card}>
-              {rows.map(([key, value], index) => (
-                <View key={key} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
-                  <Text style={styles.label}>{humanizeKey(key)}</Text>
-                  <Text style={styles.value}>{String(value)}</Text>
+            <View style={styles.mediaMetaRow}>
+              {mediaSize ? (
+                <View style={styles.mediaMetaItem}>
+                  <Ionicons name="resize-outline" size={16} color={colors.textMuted} />
+                  <Text style={styles.mediaMetaText}>{mediaSize}</Text>
                 </View>
-              ))}
-            </Card>
+              ) : null}
+              {lightType ? (
+                <View style={styles.mediaMetaItem}>
+                  <Ionicons name="bulb-outline" size={16} color={colors.textMuted} />
+                  <Text style={styles.mediaMetaText}>{lightType}</Text>
+                </View>
+              ) : null}
+            </View>
+          </Card>
 
-            <Card tint="muted" style={styles.section}>
-              <Text style={styles.fieldLabel}>Remarks</Text>
-              <TextField
-                icon="chatbubble-ellipses-outline"
-                placeholder="Enter remarks for this visit"
-                value={remarks}
-                onChangeText={setRemarks}
-                multiline
-                numberOfLines={3}
-                style={styles.remarksInput}
-              />
-            </Card>
+          <Card tint="muted" style={styles.card}>
+            {rows.map(([key, value], index) => (
+              <View key={key} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
+                <Text style={styles.label}>{humanizeKey(key)}</Text>
+                <Text style={styles.value}>{String(value)}</Text>
+              </View>
+            ))}
+          </Card>
 
-            <Card tint="muted" style={styles.section}>
-              <ImagesList
-                label="Upload Photos"
-                images={photos}
-                onAdd={onAddPhoto}
-                onUpload={onUploadPhotos}
-                uploading={uploading}
-              />
-            </Card>
-
-            <GradientButton
-              label="Task Done"
-              icon="checkmark"
-              onPress={onSubmit}
-              loading={submitting}
-              style={styles.submitButton}
+          <Card tint="muted" style={styles.section}>
+            <ImagesList
+              label="Upload Photos"
+              images={photos}
+              onAdd={onAddPhoto}
+              onUpload={onUploadPhotos}
+              uploading={uploading}
             />
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </Card>
+
+          <GradientButton
+            label="Task Done"
+            icon="checkmark"
+            onPress={onSubmit}
+            loading={submitting}
+            style={styles.submitButton}
+          />
+        </ScrollView>
       )}
     </ScreenGradient>
   );
@@ -226,9 +249,6 @@ function createStyles(colors: ThemeColors) {
     container: {
       flex: 1,
       backgroundColor: 'transparent',
-    },
-    flex: {
-      flex: 1,
     },
     content: {
       paddingHorizontal: spacing.lg,
@@ -243,11 +263,50 @@ function createStyles(colors: ThemeColors) {
       textAlign: 'center',
       paddingHorizontal: spacing.lg,
     },
+    mediaCard: {
+      marginBottom: spacing.md,
+    },
+    mediaPhoto: {
+      width: '100%',
+      height: 180,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      marginBottom: spacing.md,
+    },
+    mediaPhotoPlaceholder: {
+      width: '100%',
+      height: 180,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.md,
+    },
     title: {
       fontSize: 22,
       fontWeight: '800',
-      color: colors.onBackground,
-      marginBottom: spacing.lg,
+      color: colors.text,
+    },
+    location: {
+      marginTop: 2,
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    mediaMetaRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.md,
+      marginTop: spacing.md,
+    },
+    mediaMetaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    mediaMetaText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
     },
     card: {
       paddingVertical: 0,
@@ -256,17 +315,6 @@ function createStyles(colors: ThemeColors) {
     },
     section: {
       marginBottom: spacing.md,
-    },
-    fieldLabel: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: spacing.xs,
-    },
-    remarksInput: {
-      height: 80,
-      paddingTop: spacing.sm,
-      textAlignVertical: 'top',
     },
     submitButton: {
       marginTop: spacing.lg,

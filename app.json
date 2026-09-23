@@ -39,6 +39,12 @@
           "photosPermission": "MMX needs access to your photos to attach mounting images.",
           "cameraPermission": "MMX needs access to your camera to capture mounting images."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "MMX needs your location to geotag photos taken for mounting/removal proof."
+        }
       ]
     ],
     "experiments": {

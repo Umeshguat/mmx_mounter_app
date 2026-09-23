@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from '../context/AppContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { SettingsProvider } from '../context/SettingsContext';
 
 function RootStack() {
   return (
@@ -36,9 +37,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AppProvider>
-          <RootStack />
-        </AppProvider>
+        <SettingsProvider>
+          <AppProvider>
+            <RootStack />
+          </AppProvider>
+        </SettingsProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -7,25 +7,18 @@ import { useTheme } from '../../context/ThemeContext';
 import { gradients } from '../../theme/colors';
 import type { ThemeColors } from '../../theme/colors';
 
-function TabIcon(name: keyof typeof Ionicons.glyphMap) {
-  return ({ color }: { color: ColorValue; size: number }) => (
-    <Ionicons name={name} size={30} color={color as string} />
+// The tab bar is rendered by the navigator as its own layer, separate from
+// each screen's own ScreenGradient — without this it falls back to a plain
+// black system background instead of matching the app's purple gradient.
+function TabBarBackground() {
+  return (
+    <LinearGradient colors={gradients.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
   );
 }
 
-function AddButton() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  return (
-    <LinearGradient
-      colors={gradients.accent}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.addButton}
-    >
-      <Ionicons name="add" size={32} color={colors.white} />
-    </LinearGradient>
+function TabIcon(name: keyof typeof Ionicons.glyphMap) {
+  return ({ color }: { color: ColorValue; size: number }) => (
+    <Ionicons name={name} size={30} color={color as string} />
   );
 }
 
@@ -41,24 +34,34 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.onBackgroundIconMuted,
         tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
+        tabBarBackground: TabBarBackground,
         sceneStyle: { backgroundColor: 'transparent' },
       }}
     >
       <Tabs.Screen name="index" options={{ tabBarIcon: TabIcon('home') }} />
-      <Tabs.Screen name="tasks" options={{ tabBarIcon: TabIcon('calendar') }} />
       <Tabs.Screen
-        name="add"
-        options={{
-          tabBarIcon: AddButton,
-        }}
+        name="tasks"
+        options={{ tabBarIcon: TabIcon('calendar') }}
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            router.push('/(tabs)/tasks');
+            router.push({ pathname: '/mounter-worklist', params: { type: 'today', label: "Today's Work" } });
           },
         }}
       />
-      <Tabs.Screen name="work-summary" options={{ tabBarIcon: TabIcon('document-text') }} />
+      <Tabs.Screen
+        name="work-summary"
+        options={{ tabBarIcon: TabIcon('desktop') }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push({
+              pathname: '/mounter-worklist',
+              params: { type: 'mounting_removal', label: 'Mounting Removal' },
+            });
+          },
+        }}
+      />
       <Tabs.Screen name="profile" options={{ tabBarIcon: TabIcon('person') }} />
     </Tabs>
   );
@@ -72,20 +75,6 @@ function createStyles(colors: ThemeColors) {
       paddingBottom: 14,
       backgroundColor: 'transparent',
       borderTopWidth: 0,
-    },
-    addButton: {
-      width: 60,
-      height: 60,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 8,
-      marginBottom: 12,
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 10,
-      elevation: 5,
     },
   });
 }

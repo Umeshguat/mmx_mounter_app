@@ -7,13 +7,11 @@ import { useTheme } from '../../context/ThemeContext';
 import { spacing } from '../../theme/spacing';
 import type { ThemeColors } from '../../theme/colors';
 import { StatCard } from '../../components/StatCard';
-import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
 import { SidebarMenu } from '../../components/SidebarMenu';
 import { ScreenGradient } from '../../components/ScreenGradient';
 import { useApp } from '../../context/AppContext';
 import { getMounterDashboard, type MounterDashboardResult } from '../../services/api';
-import { recentActivity } from '../../data/mockData';
 
 const HEADER_CONTENT_HEIGHT = 56;
 
@@ -131,26 +129,6 @@ export default function Home() {
           />
         </View>
       )}
-
-      <Text style={styles.sectionTitle}>Recent</Text>
-      {recentActivity.map((item) => (
-        <Pressable key={item.id}>
-          <Card tint="muted" style={styles.recentRow}>
-            <View
-              style={[
-                styles.recentIcon,
-                { backgroundColor: item.color === 'green' ? colors.cardGreenIcon : colors.cardOrangeIcon },
-              ]}
-            >
-              <Ionicons name={item.icon === 'calendar' ? 'calendar' : 'desktop'} size={20} color={colors.white} />
-            </View>
-            <View style={styles.recentInfo}>
-              <Text style={styles.recentTitle}>{item.title}</Text>
-              <Text style={styles.recentDate}>{item.date}</Text>
-            </View>
-          </Card>
-        </Pressable>
-      ))}
       </ScrollView>
     </ScreenGradient>
     <SidebarMenu visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -228,32 +206,6 @@ function createStyles(colors: ThemeColors) {
       fontSize: 14,
       color: colors.onBackground,
       marginBottom: spacing.md,
-    },
-    recentRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: spacing.md,
-    },
-    recentIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: spacing.md,
-    },
-    recentInfo: {
-      flex: 1,
-    },
-    recentTitle: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: colors.text,
-    },
-    recentDate: {
-      marginTop: 2,
-      fontSize: 13,
-      color: colors.textMuted,
     },
   });
 }
