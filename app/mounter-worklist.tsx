@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,9 +6,12 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
+import { TextField } from '../components/TextField';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
 import { getMounterWorklist, type MounterWorklistType } from '../services/api';
+
+const SEARCH_DEBOUNCE_MS = 400;
 
 function fieldOf(item: any, keys: string[]): string | undefined {
   for (const key of keys) {
@@ -32,13 +35,20 @@ export default function MounterWorklist() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   useFocusEffect(
     useCallback(() => {
       if (!type) return;
       setLoading(true);
       setError(null);
-      getMounterWorklist(type, 1)
+      getMounterWorklist(type, 1, search)
         .then((result) => {
           setItems(result.items);
           setCount(result.count);
@@ -47,13 +57,13 @@ export default function MounterWorklist() {
         })
         .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
         .finally(() => setLoading(false));
-    }, [type])
+    }, [type, search])
   );
 
   const loadMore = () => {
     if (!type || loadingMore || page >= totalPages) return;
     setLoadingMore(true);
-    getMounterWorklist(type, page + 1)
+    getMounterWorklist(type, page + 1, search)
       .then((result) => {
         setItems((prev) => [...prev, ...result.items]);
         setPage(result.page);
@@ -67,18 +77,25 @@ export default function MounterWorklist() {
     <ScreenGradient style={styles.container}>
       <ScreenHeader title={label ?? 'Worklist'} />
 
-      {loading ? (
-        <ActivityIndicator
-          color={colors.primaryStart}
-          style={[styles.loading, { marginTop: headerHeight + spacing.lg }]}
+      <View style={[styles.searchWrap, { marginTop: headerHeight + spacing.md }]}>
+        <TextField
+          icon="search-outline"
+          placeholder="Search worklist..."
+          value={searchInput}
+          onChangeText={setSearchInput}
+          autoCapitalize="none"
         />
+      </View>
+
+      {loading ? (
+        <ActivityIndicator color={colors.primaryStart} style={styles.loading} />
       ) : error ? (
-        <Text style={[styles.errorText, { marginTop: headerHeight + spacing.lg }]}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       ) : (
         <FlatList
           data={items}
           keyExtractor={(item, index) => fieldOf(item, ['cart_id', 'id', 'taskid', 'task_id']) ?? String(index)}
-          contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+          contentContainerStyle={styles.content}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           showsVerticalScrollIndicator={false}
@@ -89,9 +106,6 @@ export default function MounterWorklist() {
               fieldOf(item, ['media_name', 'title', 'campaignname', 'campaign_name', 'name']) ?? 'Untitled';
             const campaignName = fieldOf(item, ['campaign_name', 'campaignname']);
             const orderNumber = fieldOf(item, ['order_number']);
-            const refLine = [campaignName ? `Campaign: ${campaignName}` : null, orderNumber ? `Ref: ${orderNumber}` : null]
-              .filter(Boolean)
-              .join('  ·  ');
             const subtitle = fieldOf(item, ['location', 'address', 'vendor_name', 'vendorname', 'media_code']);
             const date = fieldOf(item, ['start_date', 'date', 'display_date', 'addedon']);
             const status = fieldOf(item, ['cart_status', 'status']);
@@ -112,9 +126,14 @@ export default function MounterWorklist() {
                     <Text style={styles.title} numberOfLines={1}>
                       {title}
                     </Text>
-                    {refLine ? (
+                    {campaignName ? (
+                      <Text style={[styles.subtitle, styles.subtitleBold]} numberOfLines={1}>
+                        Campaign Name: {campaignName}
+                      </Text>
+                    ) : null}
+                    {orderNumber ? (
                       <Text style={styles.subtitle} numberOfLines={1}>
-                        {refLine}
+                        Ref No: {orderNumber}
                       </Text>
                     ) : null}
                     <Text style={styles.subtitle} numberOfLines={1}>
@@ -140,6 +159,10 @@ function createStyles(colors: ThemeColors) {
     container: {
       flex: 1,
       backgroundColor: 'transparent',
+    },
+    searchWrap: {
+      paddingHorizontal: spacing.lg,
+      marginBottom: spacing.md,
     },
     content: {
       paddingHorizontal: spacing.lg,
@@ -190,6 +213,10 @@ function createStyles(colors: ThemeColors) {
       marginTop: 2,
       fontSize: 13,
       color: colors.textMuted,
+    },
+    subtitleBold: {
+      fontWeight: '700',
+      color: colors.text,
     },
     statusBadge: {
       width: 56,

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,9 +6,12 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
+import { TextField } from '../components/TextField';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
 import { getJobProviderWorklist, type JobProviderWorklistType } from '../services/api';
+
+const SEARCH_DEBOUNCE_MS = 400;
 
 function fieldOf(item: any, keys: string[]): string | undefined {
   for (const key of keys) {
@@ -36,13 +39,20 @@ export default function JobProviderWorklist() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   useFocusEffect(
     useCallback(() => {
       if (!type || !vendorId) return;
       setLoading(true);
       setError(null);
-      getJobProviderWorklist(type, vendorId, 1)
+      getJobProviderWorklist(type, vendorId, 1, search)
         .then((result) => {
           setItems(result.items);
           setCount(result.count);
@@ -51,13 +61,13 @@ export default function JobProviderWorklist() {
         })
         .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
         .finally(() => setLoading(false));
-    }, [type, vendorId])
+    }, [type, vendorId, search])
   );
 
   const loadMore = () => {
     if (!type || !vendorId || loadingMore || page >= totalPages) return;
     setLoadingMore(true);
-    getJobProviderWorklist(type, vendorId, page + 1)
+    getJobProviderWorklist(type, vendorId, page + 1, search)
       .then((result) => {
         setItems((prev) => [...prev, ...result.items]);
         setPage(result.page);
@@ -71,18 +81,25 @@ export default function JobProviderWorklist() {
     <ScreenGradient style={styles.container}>
       <ScreenHeader title={label ?? 'Worklist'} />
 
-      {loading ? (
-        <ActivityIndicator
-          color={colors.primaryStart}
-          style={[styles.loading, { marginTop: headerHeight + spacing.lg }]}
+      <View style={[styles.searchWrap, { marginTop: headerHeight + spacing.md }]}>
+        <TextField
+          icon="search-outline"
+          placeholder="Search worklist..."
+          value={searchInput}
+          onChangeText={setSearchInput}
+          autoCapitalize="none"
         />
+      </View>
+
+      {loading ? (
+        <ActivityIndicator color={colors.primaryStart} style={styles.loading} />
       ) : error ? (
-        <Text style={[styles.errorText, { marginTop: headerHeight + spacing.lg }]}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       ) : (
         <FlatList
           data={items}
           keyExtractor={(item, index) => fieldOf(item, ['cart_id', 'id']) ?? String(index)}
-          contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+          contentContainerStyle={styles.content}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           showsVerticalScrollIndicator={false}
@@ -91,13 +108,21 @@ export default function JobProviderWorklist() {
           renderItem={({ item }) => {
             const title = fieldOf(item, ['media_name', 'title', 'campaignname', 'name']) ?? 'Untitled';
             const campaignName = fieldOf(item, ['campaign_name', 'campaignname']);
+            const locationName = fieldOf(item, ['location', 'address', 'site_location', 'site_address']);
+            const mediaName = fieldOf(item, ['media_name']);
             const orderNumber = fieldOf(item, ['order_number']);
             const mounterName = fieldOf(item, ['mounter_name']);
             const cartId = fieldOf(item, ['cart_id', 'id']);
-            const refLine = [campaignName ? `Campaign: ${campaignName}` : null, orderNumber ? `Ref: ${orderNumber}` : null]
-              .filter(Boolean)
-              .join('  ·  ');
             const isAssigned = !!mounterName;
+
+            const detailLines = (
+              [
+                campaignName ? { text: `Campaign Name: ${campaignName}`, bold: true } : null,
+                locationName ? { text: `Location Name: ${locationName}`, bold: false } : null,
+                mediaName ? { text: `Media Name: ${mediaName}`, bold: false } : null,
+                orderNumber ? { text: `Ref No: ${orderNumber}`, bold: false } : null,
+              ] as ({ text: string; bold: boolean } | null)[]
+            ).filter((line): line is { text: string; bold: boolean } => line !== null);
 
             const row = (
               <Card elevated padding={0} style={styles.row}>
@@ -108,11 +133,15 @@ export default function JobProviderWorklist() {
                   <Text style={styles.title} numberOfLines={1}>
                     {title}
                   </Text>
-                  {refLine ? (
-                    <Text style={styles.subtitle} numberOfLines={1}>
-                      {refLine}
+                  {detailLines.map((line) => (
+                    <Text
+                      key={line.text}
+                      style={[styles.subtitle, line.bold && styles.subtitleBold]}
+                      numberOfLines={1}
+                    >
+                      {line.text}
                     </Text>
-                  ) : null}
+                  ))}
                   {mounterName ? (
                     <Text style={styles.subtitle} numberOfLines={1}>
                       Mounter: {mounterName}
@@ -125,15 +154,22 @@ export default function JobProviderWorklist() {
               </Card>
             );
 
-            if (isAssigned || !cartId) return row;
+            if (!cartId) return row;
 
             return (
               <Pressable
                 onPress={() =>
-                  router.push({
-                    pathname: '/assign-mounter',
-                    params: { cartId, title, subtitle: refLine, type },
-                  })
+                  isAssigned
+                    ? router.push({ pathname: '/job-provider-task-detail', params: { cartId } })
+                    : router.push({
+                        pathname: '/assign-mounter',
+                        params: {
+                          cartId,
+                          title,
+                          subtitle: detailLines.map((l) => l.text).join('  ·  '),
+                          type,
+                        },
+                      })
                 }
               >
                 {row}
@@ -152,6 +188,10 @@ function createStyles(colors: ThemeColors) {
     container: {
       flex: 1,
       backgroundColor: 'transparent',
+    },
+    searchWrap: {
+      paddingHorizontal: spacing.lg,
+      marginBottom: spacing.md,
     },
     content: {
       paddingHorizontal: spacing.lg,
@@ -202,6 +242,10 @@ function createStyles(colors: ThemeColors) {
       marginTop: 2,
       fontSize: 13,
       color: colors.textMuted,
+    },
+    subtitleBold: {
+      fontWeight: '700',
+      color: colors.text,
     },
     statusBadge: {
       width: 56,

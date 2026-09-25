@@ -25,6 +25,7 @@ function RootStack() {
         <Stack.Screen name="job-provider-dashboard" />
         <Stack.Screen name="job-provider-profile" />
         <Stack.Screen name="job-provider-worklist" />
+        <Stack.Screen name="job-provider-task-detail" />
         <Stack.Screen name="mounter-worklist" />
         <Stack.Screen name="task-detail" />
         <Stack.Screen name="assign-mounter" options={{ presentation: 'modal' }} />

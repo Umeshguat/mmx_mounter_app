@@ -12,22 +12,31 @@ type Props = {
   background: string;
   iconColor: string;
   onPress?: () => void;
+  // Smaller 3-per-row card, for dashboards with many stat cards.
+  compact?: boolean;
 };
 
-export function StatCard({ label, value, icon, background, iconColor, onPress }: Props) {
+export function StatCard({ label, value, icon, background, iconColor, onPress, compact }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, { backgroundColor: background }, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        compact && styles.cardCompact,
+        { backgroundColor: background },
+        pressed && styles.pressed,
+      ]}
       onPress={onPress}
     >
-      <View style={[styles.iconWrap, { backgroundColor: colors.surfaceElevated }]}>
-        <Ionicons name={icon} size={24} color={iconColor} />
+      <View style={[styles.iconWrap, compact && styles.iconWrapCompact, { backgroundColor: colors.surfaceElevated }]}>
+        <Ionicons name={icon} size={compact ? 18 : 24} color={iconColor} />
       </View>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.label, compact && styles.labelCompact]} numberOfLines={2}>
+        {label}
+      </Text>
+      <Text style={[styles.value, compact && styles.valueCompact]}>{value}</Text>
     </Pressable>
   );
 }
@@ -45,6 +54,10 @@ function createStyles(colors: ThemeColors) {
       shadowRadius: 10,
       elevation: 2,
     },
+    cardCompact: {
+      flexBasis: '31%',
+      padding: spacing.sm,
+    },
     pressed: {
       opacity: 0.85,
     },
@@ -55,16 +68,29 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    iconWrapCompact: {
+      width: 30,
+      height: 30,
+      borderRadius: radius.sm,
+    },
     label: {
       marginTop: spacing.md,
       fontSize: 14,
       color: colors.text,
+    },
+    labelCompact: {
+      marginTop: spacing.xs,
+      fontSize: 11,
     },
     value: {
       marginTop: spacing.xs,
       fontSize: 28,
       fontWeight: '800',
       color: colors.text,
+    },
+    valueCompact: {
+      marginTop: 2,
+      fontSize: 20,
     },
   });
 }

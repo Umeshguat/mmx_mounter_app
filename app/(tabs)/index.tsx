@@ -117,16 +117,6 @@ export default function Home() {
               })
             }
           />
-          <StatCard
-            label="Advance Work"
-            value={stats?.advanceWorkCount ?? 0}
-            icon="time-outline"
-            background={colors.cardPurple}
-            iconColor={colors.cardPurpleIcon}
-            onPress={() =>
-              router.push({ pathname: '/mounter-worklist', params: { type: 'advance', label: 'Advance Work' } })
-            }
-          />
         </View>
       )}
       </ScrollView>

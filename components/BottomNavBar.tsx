@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { gradients } from '../theme/colors';
 import type { ThemeColors } from '../theme/colors';
 
 // Mirrors (tabs)/_layout.tsx's tab bar look for screens that live outside
@@ -50,6 +52,12 @@ export function BottomNavBar({ active, vendorId }: Props) {
 
   return (
     <View style={styles.bar}>
+      <LinearGradient
+        colors={gradients.background}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       {ITEMS.map((item) => {
         const isActive = item.id === active;
         const destination = destinations[item.id];

@@ -183,7 +183,10 @@ export async function getSelectableVendors(): Promise<SelectableVendor[]> {
 export type JobProviderDashboardResult = {
   vendorId: number;
   mountingWorklistCount: number;
+  pendingMountingWorklistCount: number;
   mountingRemovalCount: number;
+  pendingMountingRemovalCount: number;
+  advanceWorkCount: number;
   mounterAssignedCount: number;
   mountingRemovalAssignedCount: number;
   raw: unknown;
@@ -207,9 +210,12 @@ export async function getJobProviderDashboard(vendorId: string | number): Promis
 
   return {
     vendorId: returndata.vendorid,
-    mountingWorklistCount: returndata.mounting_worklist_count,
-    mountingRemovalCount: returndata.mounting_removal_count,
-    mounterAssignedCount: returndata.mounter_assigned_count,
+    mountingWorklistCount: returndata.mounting_worklist_count ?? 0,
+    pendingMountingWorklistCount: returndata.mounting_pending_worklist_count ?? 0,
+    mountingRemovalCount: returndata.mounting_removal_count ?? 0,
+    pendingMountingRemovalCount: returndata.mounting_pending_removal_count ?? 0,
+    advanceWorkCount: returndata.advance_work_count ?? 0,
+    mounterAssignedCount: returndata.mounter_assigned_count ?? 0,
     mountingRemovalAssignedCount: returndata.mounting_removal_assigned_count ?? 0,
     raw: body,
   };
@@ -217,7 +223,10 @@ export async function getJobProviderDashboard(vendorId: string | number): Promis
 
 export type JobProviderWorklistType =
   | 'mounting_worklist'
+  | 'mounting_pending_worklist'
   | 'mounting_removal'
+  | 'mounting_pending_removal'
+  | 'advance_work'
   | 'mounter_assigned'
   | 'mounting_removal_assigned';
 
@@ -231,14 +240,16 @@ export type JobProviderWorklistResult = {
 export async function getJobProviderWorklist(
   type: JobProviderWorklistType,
   vendorId: string | number,
-  page = 1
+  page = 1,
+  search = ''
 ): Promise<JobProviderWorklistResult> {
   const authHeaders = await getAuthHeaders();
 
   let response: Response;
   try {
+    const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
     response = await fetch(
-      `${API_BASE_URL}/app-api/field/jobproviderworklist?type=${type}&vendorid=${vendorId}&page=${page}`,
+      `${API_BASE_URL}/app-api/field/jobproviderworklist?type=${type}&vendorid=${vendorId}&page=${page}${searchParam}`,
       { method: 'GET', headers: { ...authHeaders } }
     );
   } catch {
@@ -308,22 +319,30 @@ export type MounterWorklistResult = {
   totalPages: number;
 };
 
-export async function getMounterWorklist(type: MounterWorklistType, page = 1): Promise<MounterWorklistResult> {
+export async function getMounterWorklist(
+  type: MounterWorklistType,
+  page = 1,
+  search = ''
+): Promise<MounterWorklistResult> {
   const authHeaders = await getAuthHeaders();
+  const dataKey = MOUNTER_WORKLIST_DATA_KEY[type];
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}/app-api/field/mounterworklist?type=${type}&page=${page}`, {
-      method: 'GET',
-      headers: { ...authHeaders },
-    });
+    const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
+    response = await fetch(
+      `${API_BASE_URL}/app-api/field/mounterworklist?type=${type}&page=${page}${searchParam}`,
+      {
+        method: 'GET',
+        headers: { ...authHeaders },
+      }
+    );
   } catch {
     throw new Error('Could not reach the server. Check your connection and try again.');
   }
 
   const body = await parseApiResponse(response, 'Could not load worklist. Please try again.');
   const returndata = body.returndata;
-  const dataKey = MOUNTER_WORKLIST_DATA_KEY[type];
 
   return {
     items: returndata[dataKey] ?? [],

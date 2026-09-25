@@ -84,6 +84,23 @@ export default function JobProviderDashboard() {
                 }
               />
               <StatCard
+                label="Pending Mounting Worklist"
+                value={stats?.pendingMountingWorklistCount ?? 0}
+                icon="hourglass-outline"
+                background={colors.cardGreen}
+                iconColor={colors.cardGreenIcon}
+                onPress={() =>
+                  router.push({
+                    pathname: '/job-provider-worklist',
+                    params: {
+                      type: 'mounting_pending_worklist',
+                      vendorId,
+                      label: 'Pending Mounting Worklist',
+                    },
+                  })
+                }
+              />
+              <StatCard
                 label="Mounting Removal"
                 value={stats?.mountingRemovalCount ?? 0}
                 icon="desktop-outline"
@@ -93,6 +110,36 @@ export default function JobProviderDashboard() {
                   router.push({
                     pathname: '/job-provider-worklist',
                     params: { type: 'mounting_removal', vendorId, label: 'Mounting Removal' },
+                  })
+                }
+              />
+              <StatCard
+                label="Pending Mounting Removal"
+                value={stats?.pendingMountingRemovalCount ?? 0}
+                icon="alert-circle-outline"
+                background={colors.cardRed}
+                iconColor={colors.cardRedIcon}
+                onPress={() =>
+                  router.push({
+                    pathname: '/job-provider-worklist',
+                    params: {
+                      type: 'mounting_pending_removal',
+                      vendorId,
+                      label: 'Pending Mounting Removal',
+                    },
+                  })
+                }
+              />
+              <StatCard
+                label="Advance Work"
+                value={stats?.advanceWorkCount ?? 0}
+                icon="time-outline"
+                background={colors.cardPurple}
+                iconColor={colors.cardPurpleIcon}
+                onPress={() =>
+                  router.push({
+                    pathname: '/job-provider-worklist',
+                    params: { type: 'advance_work', vendorId, label: 'Advance Work' },
                   })
                 }
               />
