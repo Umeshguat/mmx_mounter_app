@@ -75,6 +75,17 @@ export function SidebarMenu({ visible, onClose }: Props) {
       },
     },
     { id: 'about', label: 'About MMX', icon: 'play-outline', onPress: () => go('/about') },
+    // Only job-provider accounts have a vendor to switch — mounters never do.
+    ...(vendor
+      ? [
+          {
+            id: 'switch-vendor',
+            label: 'Switch Vendor',
+            icon: 'business-outline' as const,
+            onPress: () => go('/vendor-select'),
+          },
+        ]
+      : []),
     { id: 'logout', label: 'Logout', icon: 'power-outline', danger: true, onPress: onLogout },
   ];
 

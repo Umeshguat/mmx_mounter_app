@@ -73,6 +73,30 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   return apikey ? { auth: apikey } : {};
 }
 
+// Set by AppProvider so this module (which AppContext already depends on, so
+// it can't import AppContext back) can trigger a forced logout + redirect to
+// login the moment the server reports the session was invalidated — e.g. the
+// same account logging in from another device.
+let onSessionInvalid: (() => void) | null = null;
+
+export function setSessionInvalidHandler(handler: (() => void) | null): void {
+  onSessionInvalid = handler;
+}
+
+// The backend doesn't expose a dedicated errorcode for this case (at least
+// none confirmed so far), so this matches on the message text itself.
+function isSessionInvalidMessage(message: string | undefined): boolean {
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('another device') ||
+    normalized.includes('logged in from') ||
+    normalized.includes('session expired') ||
+    normalized.includes('session has expired') ||
+    normalized.includes('invalid session')
+  );
+}
+
 /**
  * Shared response contract used across the MMX API: { returncode, returnmessage,
  * returndata: { error, errorcode, message, ...payload } }. Parses the response and
@@ -96,6 +120,9 @@ async function parseApiResponse<T = any>(response: Response, fallbackErrorMessag
 
   if (!success) {
     const message = returndata?.message || body?.returnmessage || fallbackErrorMessage;
+    if (isSessionInvalidMessage(message)) {
+      onSessionInvalid?.();
+    }
     throw new Error(message);
   }
 

@@ -69,7 +69,7 @@ export function BottomNavBar({ active, vendorId }: Props) {
             onPress={destination ? () => router.push(destination) : undefined}
             hitSlop={10}
           >
-            <Ionicons name={item.icon} size={30} color={isActive ? colors.onBackgroundIcon : colors.onBackgroundIconMuted} />
+            <Ionicons name={item.icon} size={26} color={isActive ? colors.onBackgroundIcon : colors.onBackgroundIconMuted} />
           </Pressable>
         );
       })}

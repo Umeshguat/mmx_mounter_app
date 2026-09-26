@@ -11,12 +11,13 @@ import { GradientButton } from '../components/GradientButton';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
 import { assignMounter, getMounters, getTaskDetail } from '../services/api';
+import { capitalizeFirst } from '../utils/format';
 
 const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image', 'media_photo_url'];
 
 // Same field set as job-provider-task-detail.tsx's read-only view.
-const DETAIL_FIELDS: { keys: string[]; label: string }[] = [
-  { keys: ['campaign_name', 'campaignname'], label: 'Campaign Name' },
+const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string }[] = [
+  { keys: ['campaign_name', 'campaignname'], label: 'Campaign Name', format: capitalizeFirst },
   { keys: ['media_type'], label: 'Media Type' },
   { keys: ['media_name'], label: 'Media Name' },
   { keys: ['media_code'], label: 'Media Code' },
@@ -94,9 +95,10 @@ export default function AssignMounter() {
 
   const displayTitle = task?.media_name ?? title ?? `Cart #${cartId}`;
   const mediaPhoto = fieldOf(task, MEDIA_PHOTO_KEYS);
-  const detailRows = DETAIL_FIELDS.map(({ keys, label }) => ({ label, value: fieldOf(task, keys) })).filter(
-    (row) => row.value !== undefined
-  );
+  const detailRows = DETAIL_FIELDS.map(({ keys, label, format }) => {
+    const value = fieldOf(task, keys);
+    return { label, value: value !== undefined && format ? format(value) : value };
+  }).filter((row) => row.value !== undefined);
 
   return (
     <ScreenGradient style={styles.container}>

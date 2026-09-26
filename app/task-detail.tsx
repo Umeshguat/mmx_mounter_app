@@ -11,6 +11,7 @@ import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
 import { getTaskDetail, updateTask, completeTask } from '../services/api';
+import { capitalizeFirst } from '../utils/format';
 
 // No remarks UI anymore, but the backend still requires a non-empty
 // `remarks` field on both /update (photo upload) and /status (task done).
@@ -213,12 +214,15 @@ export default function TaskDetail() {
           </Card>
 
           <Card tint="muted" style={styles.card}>
-            {rows.map(([key, value], index) => (
-              <View key={key} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
-                <Text style={styles.label}>{humanizeKey(key)}</Text>
-                <Text style={styles.value}>{String(value)}</Text>
-              </View>
-            ))}
+            {rows.map(([key, value], index) => {
+              const display = key === 'campaign_name' ? capitalizeFirst(String(value)) : String(value);
+              return (
+                <View key={key} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
+                  <Text style={styles.label}>{humanizeKey(key)}</Text>
+                  <Text style={styles.value}>{display}</Text>
+                </View>
+              );
+            })}
           </Card>
 
           <Card tint="muted" style={styles.section}>

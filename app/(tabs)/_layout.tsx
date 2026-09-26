@@ -18,7 +18,7 @@ function TabBarBackground() {
 
 function TabIcon(name: keyof typeof Ionicons.glyphMap) {
   return ({ color }: { color: ColorValue; size: number }) => (
-    <Ionicons name={name} size={30} color={color as string} />
+    <Ionicons name={name} size={26} color={color as string} />
   );
 }
 

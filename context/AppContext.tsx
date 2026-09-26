@@ -1,7 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { router } from 'expo-router';
+import { Alert } from 'react-native';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { vendors, type Vendor } from '../data/mockData';
-import { clearApiKey, clearUserProfile, getUserProfile, loginRequest, type LoginResult, type UserProfile } from '../services/api';
+import {
+  clearApiKey,
+  clearUserProfile,
+  getUserProfile,
+  loginRequest,
+  setSessionInvalidHandler,
+  type LoginResult,
+  type UserProfile,
+} from '../services/api';
 
 type AppState = {
   isLoading: boolean;
@@ -56,6 +66,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await clearApiKey();
     await clearUserProfile();
   };
+
+  // Guards against every in-flight request tripping this at once (e.g. a
+  // screen firing several API calls in parallel) — only the first one should
+  // actually force the logout + navigation.
+  const forcingLogoutRef = useRef(false);
+
+  useEffect(() => {
+    setSessionInvalidHandler(() => {
+      if (forcingLogoutRef.current) return;
+      forcingLogoutRef.current = true;
+      logout()
+        .catch(() => {})
+        .finally(() => {
+          router.replace('/login');
+          forcingLogoutRef.current = false;
+          Alert.alert(
+            'Logged out',
+            'Your session ended — this account may have been logged in from another device. Please log in again.'
+          );
+        });
+    });
+    return () => setSessionInvalidHandler(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectVendor = async (nextVendor: Vendor) => {
     setVendor(nextVendor);

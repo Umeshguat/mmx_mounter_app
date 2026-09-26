@@ -31,7 +31,7 @@ export function StatCard({ label, value, icon, background, iconColor, onPress, c
       onPress={onPress}
     >
       <View style={[styles.iconWrap, compact && styles.iconWrapCompact, { backgroundColor: colors.surfaceElevated }]}>
-        <Ionicons name={icon} size={compact ? 18 : 24} color={iconColor} />
+        <Ionicons name={icon} size={compact ? 18 : 20} color={iconColor} />
       </View>
       <Text style={[styles.label, compact && styles.labelCompact]} numberOfLines={2}>
         {label}

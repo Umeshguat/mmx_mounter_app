@@ -45,11 +45,11 @@ export default function JobProviderDashboard() {
       <View style={styles.mainArea}>
         <View style={[styles.topBar, { paddingTop: insets.top, height: headerHeight }]}>
           <Pressable onPress={() => setSidebarOpen(true)} hitSlop={10} style={styles.topBarLeft}>
-            <Ionicons name="menu" size={30} color={colors.onBackgroundIcon} />
+            <Ionicons name="menu" size={26} color={colors.onBackgroundIcon} />
             <Text style={styles.platformName}>My MediaXchange</Text>
           </Pressable>
           <Pressable onPress={() => router.push('/notifications')} hitSlop={10}>
-            <Ionicons name="notifications" size={30} color={colors.onBackgroundIcon} />
+            <Ionicons name="notifications" size={26} color={colors.onBackgroundIcon} />
             <View style={styles.notifDot}>
               <Badge variant="dot" tone="red" size={8} />
             </View>
