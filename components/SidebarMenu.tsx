@@ -31,7 +31,7 @@ export function SidebarMenu({ visible, onClose }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout, vendor, userProfile } = useApp();
-  const { geotagPhotos, setGeotagPhotos } = useSettings();
+  const { geotagPhotos, setGeotagPhotos, dateTimeStamp, setDateTimeStamp } = useSettings();
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
 
@@ -130,6 +130,16 @@ export function SidebarMenu({ visible, onClose }: Props) {
               <Switch
                 value={geotagPhotos}
                 onValueChange={setGeotagPhotos}
+                trackColor={{ false: colors.border, true: colors.primaryStart }}
+                thumbColor={colors.white}
+              />
+            </View>
+            <View style={styles.menuRow}>
+              <Ionicons name="calendar-outline" size={20} color={colors.onBackground} />
+              <Text style={styles.menuLabel}>Add Date & Time</Text>
+              <Switch
+                value={dateTimeStamp}
+                onValueChange={setDateTimeStamp}
                 trackColor={{ false: colors.border, true: colors.primaryStart }}
                 thumbColor={colors.white}
               />

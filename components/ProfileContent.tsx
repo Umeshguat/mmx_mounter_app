@@ -29,7 +29,7 @@ export function ProfileContent() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout, userProfile } = useApp();
-  const { geotagPhotos, setGeotagPhotos } = useSettings();
+  const { geotagPhotos, setGeotagPhotos, dateTimeStamp, setDateTimeStamp } = useSettings();
   const [rateModalVisible, setRateModalVisible] = useState(false);
 
   const onLogout = () => {
@@ -78,6 +78,16 @@ export function ProfileContent() {
           <Switch
             value={geotagPhotos}
             onValueChange={setGeotagPhotos}
+            trackColor={{ false: colors.border, true: colors.primaryStart }}
+            thumbColor={colors.white}
+          />
+        </View>
+        <View style={styles.menuRow}>
+          <Ionicons name="calendar-outline" size={22} color={colors.text} />
+          <Text style={styles.menuLabel}>Add Date & Time</Text>
+          <Switch
+            value={dateTimeStamp}
+            onValueChange={setDateTimeStamp}
             trackColor={{ false: colors.border, true: colors.primaryStart }}
             thumbColor={colors.white}
           />

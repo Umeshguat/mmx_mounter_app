@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -86,6 +86,7 @@ export default function TaskDetail() {
   const [photos, setPhotos] = useState<PickedImage[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   useEffect(() => {
     if (!cartId) return;
@@ -188,7 +189,9 @@ export default function TaskDetail() {
         >
           <Card tint="muted" style={styles.mediaCard}>
             {mediaPhoto ? (
-              <Image source={{ uri: mediaPhoto }} style={styles.mediaPhoto} resizeMode="cover" />
+              <Pressable onPress={() => setPreviewVisible(true)}>
+                <Image source={{ uri: mediaPhoto }} style={styles.mediaPhoto} resizeMode="cover" />
+              </Pressable>
             ) : (
               <View style={styles.mediaPhotoPlaceholder}>
                 <Ionicons name="image-outline" size={32} color={colors.textFaint} />
@@ -244,6 +247,20 @@ export default function TaskDetail() {
           />
         </ScrollView>
       )}
+
+      <Modal
+        visible={previewVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewVisible(false)}
+      >
+        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewVisible(false)}>
+          <Image source={{ uri: mediaPhoto }} style={styles.previewImage} resizeMode="contain" />
+          <Pressable style={styles.previewClose} onPress={() => setPreviewVisible(false)}>
+            <Ionicons name="close" size={22} color={colors.white} />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenGradient>
   );
 }
@@ -345,6 +362,27 @@ function createStyles(colors: ThemeColors) {
       fontWeight: '600',
       color: colors.text,
       textAlign: 'right',
+    },
+    previewBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.9)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewImage: {
+      width: '100%',
+      height: '80%',
+    },
+    previewClose: {
+      position: 'absolute',
+      top: spacing.xxl,
+      right: spacing.lg,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }

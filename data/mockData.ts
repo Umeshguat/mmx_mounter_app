@@ -126,8 +126,8 @@ export const faqs: FaqItem[] = [
 ];
 
 export const supportContact = {
-  phone: '+91 98765 43210',
-  email: 'support@bindassdealdigital.com',
+  phone: '+91 73036 03204',
+  email: 'diya@mymediaxchange.com',
   hours: 'Mon - Sat, 9:00 AM - 7:00 PM IST',
 };
 
@@ -135,6 +135,6 @@ export const aboutInfo = {
   version: '1.0.0',
   description:
     'MMX Mounter helps field teams manage outdoor advertising installations — from task assignment to on-site photo proof and completion tracking.',
-  company: 'Bindass Deal Digital',
-  website: 'www.bindassdealdigital.com',
+  company: 'My MediaXchange',
+  website: 'www.mymediaxchange.com',
 };

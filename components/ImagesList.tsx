@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -47,6 +47,7 @@ type StampJob = {
   timeText: string;
   gmtText: string;
   location: LocationDetails | null;
+  showDateTime: boolean;
 };
 
 // A-Z ISO country code -> regional indicator emoji flag (e.g. "IN" -> 🇮🇳).
@@ -107,10 +108,11 @@ function waitForNextFrame(): Promise<void> {
 
 export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add images' }: Props) {
   const { colors } = useTheme();
-  const { geotagPhotos } = useSettings();
+  const { geotagPhotos, dateTimeStamp } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const stampRef = useRef<View>(null);
   const [stampJob, setStampJob] = useState<StampJob | null>(null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
   // Resolved by the hidden photo's onLoad — capturing before the bitmap has
   // actually decoded and painted produces a blank/black capture.
   const imageLoadedRef = useRef<(() => void) | null>(null);
@@ -144,10 +146,25 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
   // photo pixels via a hidden off-screen view + react-native-view-shot, so
   // the stamp is visible proof on the image itself, not just file metadata.
   const addStampedAsset = async (asset: ImagePicker.ImagePickerAsset) => {
-    const width = Math.min(asset.width || MAX_WIDTH, MAX_WIDTH);
-    const height = Math.round(width * ((asset.height || asset.width || 1) / (asset.width || 1)));
+    // asset.width/height from the camera picker can be the pre-EXIF-rotation
+    // sensor dimensions on some Android devices (e.g. landscape 4000x3000
+    // reported for a photo that actually displays as portrait 3000x4000).
+    // Image.getSize reads the same orientation-corrected size the Image
+    // below will render, so the capture box's aspect ratio actually matches
+    // the photo and resizeMode="cover" doesn't crop it.
+    const naturalSize = await new Promise<{ width: number; height: number }>((resolve) => {
+      Image.getSize(
+        asset.uri,
+        (w, h) => resolve({ width: w, height: h }),
+        () => resolve({ width: asset.width || MAX_WIDTH, height: asset.height || asset.width || MAX_WIDTH })
+      );
+    });
+    const width = Math.min(naturalSize.width || MAX_WIDTH, MAX_WIDTH);
+    const height = Math.round(width * ((naturalSize.height || naturalSize.width || 1) / (naturalSize.width || 1)));
     const now = new Date();
-    const location = await getLocationDetails();
+    // Geotag Photos and Add Date & Time are mutually exclusive — only fetch
+    // location when the geotag stamp (not the date/time-only stamp) is on.
+    const location = geotagPhotos ? await getLocationDetails() : null;
 
     setStampJob({
       uri: asset.uri,
@@ -157,6 +174,7 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
       timeText: now.toLocaleTimeString(),
       gmtText: formatGmtOffset(now),
       location,
+      showDateTime: dateTimeStamp,
     });
 
     const imageLoaded = new Promise<void>((resolve) => {
@@ -189,7 +207,7 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
   const addFromResult = async (result: ImagePicker.ImagePickerResult, stamp: boolean) => {
     if (result.canceled || result.assets.length === 0) return;
     for (const asset of result.assets) {
-      if (stamp && geotagPhotos) {
+      if (stamp && (geotagPhotos || dateTimeStamp)) {
         await addStampedAsset(asset);
       } else {
         await addAsset(asset);
@@ -237,7 +255,9 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
       <View style={styles.grid}>
         {images.map((image, index) => (
           <View key={`${image.uri}-${index}`} style={styles.thumbWrap}>
-            <Image source={{ uri: image.uri }} style={styles.thumb} />
+            <Pressable onPress={() => setPreviewUri(image.uri)}>
+              <Image source={{ uri: image.uri }} style={styles.thumb} />
+            </Pressable>
             {image.uploadStatus === 'uploading' ? (
               <View style={styles.statusOverlay}>
                 <ActivityIndicator color={colors.white} size="small" />
@@ -314,21 +334,37 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
                   <Text style={styles.stampMeta}>
                     Lat {stampJob.location.latText} Long {stampJob.location.lngText}
                   </Text>
-                  <Text style={styles.stampMeta}>
-                    {stampJob.dateText}, {stampJob.timeText} {stampJob.gmtText}
-                  </Text>
+                  {stampJob.showDateTime ? (
+                    <Text style={styles.stampMeta}>
+                      {stampJob.dateText}, {stampJob.timeText} {stampJob.gmtText}
+                    </Text>
+                  ) : null}
                 </View>
-              ) : (
+              ) : stampJob.showDateTime ? (
                 <View style={styles.stampInfo}>
                   <Text style={styles.stampMeta}>
                     {stampJob.dateText}, {stampJob.timeText} {stampJob.gmtText}
                   </Text>
                 </View>
-              )}
+              ) : null}
             </View>
           </View>
         </View>
       ) : null}
+
+      <Modal
+        visible={!!previewUri}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewUri(null)}
+      >
+        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewUri(null)}>
+          <Image source={{ uri: previewUri ?? undefined }} style={styles.previewImage} resizeMode="contain" />
+          <Pressable style={styles.previewClose} onPress={() => setPreviewUri(null)}>
+            <Ionicons name="close" size={22} color={colors.white} />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -458,6 +494,27 @@ function createStyles(colors: ThemeColors) {
       fontSize: 18,
       fontWeight: '600',
       marginTop: 3,
+    },
+    previewBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.9)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewImage: {
+      width: '100%',
+      height: '80%',
+    },
+    previewClose: {
+      position: 'absolute',
+      top: spacing.xxl,
+      right: spacing.lg,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }
