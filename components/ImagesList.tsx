@@ -288,6 +288,11 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
               source={{ uri: stampJob.uri }}
               style={{ width: stampJob.width, height: stampJob.height }}
               resizeMode="cover"
+              // Android fades images in over ~300ms by default; capturing
+              // mid-fade grabs a partially transparent bitmap, which gets
+              // flattened onto black when encoded as JPEG (no alpha channel)
+              // — darkening the photo relative to the opaque stamp box.
+              fadeDuration={0}
               onLoadEnd={() => imageLoadedRef.current?.()}
             />
             <View style={styles.stampOverlay}>
@@ -407,13 +412,16 @@ function createStyles(colors: ThemeColors) {
       opacity: 0.5,
     },
     // Positioned off-screen (not display:none — view-shot can't capture an
-    // unrendered/zero-size view) so the stamped composite renders invisibly
-    // before being captured as a new image.
+    // unrendered/zero-size view) so the stamped composite is never visible
+    // on screen before being captured as a new image. Must stay fully
+    // opaque: opacity < 1 here bakes into the captured pixels since
+    // captureRef snapshots the rendered layer, and JPEG has no alpha
+    // channel, so a translucent capture gets flattened onto black —
+    // darkening the photo relative to the opaque stamp box.
     stampCaptureWrap: {
       position: 'absolute',
       top: 0,
       left: -9999,
-      opacity: 0,
     },
     stampOverlay: {
       position: 'absolute',
