@@ -16,12 +16,14 @@ import { capitalizeFirst } from '../utils/format';
 const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image', 'media_photo_url'];
 
 // Same field set as job-provider-task-detail.tsx's read-only view.
-const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string }[] = [
+const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string; alwaysShow?: boolean }[] = [
   { keys: ['campaign_name', 'campaignname'], label: 'Campaign Name', format: capitalizeFirst },
   { keys: ['media_type'], label: 'Media Type' },
   { keys: ['media_name'], label: 'Media Name' },
   { keys: ['media_code'], label: 'Media Code' },
-  { keys: ['media_size', 'size'], label: 'Size' },
+  // The backend often sends both media_size and size as null — still shown
+  // (as "-") rather than silently dropped, so the field's absence is visible.
+  { keys: ['media_size', 'size'], label: 'Size', alwaysShow: true },
   { keys: ['quantity'], label: 'Qty' },
   { keys: ['light_type', 'lighting_type'], label: 'Light Type' },
   { keys: ['order_number'], label: 'Order Number' },
@@ -96,9 +98,10 @@ export default function AssignMounter() {
 
   const displayTitle = task?.media_name ?? title ?? `Cart #${cartId}`;
   const mediaPhoto = fieldOf(task, MEDIA_PHOTO_KEYS);
-  const detailRows = DETAIL_FIELDS.map(({ keys, label, format }) => {
+  const detailRows = DETAIL_FIELDS.map(({ keys, label, format, alwaysShow }) => {
     const value = fieldOf(task, keys);
-    return { label, value: value !== undefined && format ? format(value) : value };
+    const display = value !== undefined && format ? format(value) : value;
+    return { label, value: display ?? (alwaysShow ? '-' : undefined) };
   }).filter((row) => row.value !== undefined);
 
   return (

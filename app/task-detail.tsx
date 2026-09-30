@@ -23,6 +23,10 @@ const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image'
 const MEDIA_SIZE_KEYS = ['media_size', 'size', 'hoarding_size', 'board_size'];
 const LIGHT_TYPE_KEYS = ['light_type', 'lighting_type', 'light'];
 const LOCATION_KEYS = ['location', 'address', 'site_location', 'site_address'];
+// Arrays of {photo_id, image_url}-shaped objects — rendered as thumbnail
+// strips below, so they must be excluded from the generic key/value table
+// (which would otherwise stringify each entry as "[object Object]").
+const PHOTO_ARRAY_KEYS = ['mounting_photos', 'removal_photos'];
 
 const META_KEYS = new Set([
   'error',
@@ -40,7 +44,15 @@ const META_KEYS = new Set([
   ...MEDIA_SIZE_KEYS,
   ...LIGHT_TYPE_KEYS,
   ...LOCATION_KEYS,
+  ...PHOTO_ARRAY_KEYS,
 ]);
+
+// Pulls a usable image URL out of whatever shape the API sends a photo
+// object in ({image_url}/{imageUrl}/{url}, or a bare string URL).
+function photoUrlOf(item: any): string | undefined {
+  if (typeof item === 'string') return item;
+  return item?.image_url ?? item?.imageUrl ?? item?.photo_url ?? item?.url ?? undefined;
+}
 
 const LABEL_OVERRIDES: Record<string, string> = {
   order_number: 'Order Number',
@@ -86,7 +98,7 @@ export default function TaskDetail() {
   const [photos, setPhotos] = useState<PickedImage[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
 
   useEffect(() => {
     if (!cartId) return;
@@ -105,6 +117,11 @@ export default function TaskDetail() {
   const mediaPhoto = fieldOf(task, MEDIA_PHOTO_KEYS);
   const location = fieldOf(task, LOCATION_KEYS);
   const mediaSize = fieldOf(task, MEDIA_SIZE_KEYS);
+  const photoGroups = PHOTO_ARRAY_KEYS.map((key) => ({
+    key,
+    label: humanizeKey(key),
+    urls: (Array.isArray(task?.[key]) ? task[key] : []).map(photoUrlOf).filter((u): u is string => !!u),
+  })).filter((group) => group.urls.length > 0);
   const lightType = fieldOf(task, LIGHT_TYPE_KEYS);
 
   const hasUploadedPhoto = photos.some((p) => p.uploadStatus === 'uploaded');
@@ -189,7 +206,7 @@ export default function TaskDetail() {
         >
           <Card tint="muted" style={styles.mediaCard}>
             {mediaPhoto ? (
-              <Pressable onPress={() => setPreviewVisible(true)}>
+              <Pressable onPress={() => setPreviewUri(mediaPhoto)}>
                 <Image source={{ uri: mediaPhoto }} style={styles.mediaPhoto} resizeMode="cover" />
               </Pressable>
             ) : (
@@ -201,12 +218,10 @@ export default function TaskDetail() {
             {location ? <Text style={styles.location}>{location}</Text> : null}
 
             <View style={styles.mediaMetaRow}>
-              {mediaSize ? (
-                <View style={styles.mediaMetaItem}>
-                  <Ionicons name="resize-outline" size={16} color={colors.textMuted} />
-                  <Text style={styles.mediaMetaText}>{mediaSize}</Text>
-                </View>
-              ) : null}
+              <View style={styles.mediaMetaItem}>
+                <Ionicons name="resize-outline" size={16} color={colors.textMuted} />
+                <Text style={styles.mediaMetaText}>{mediaSize ?? '-'}</Text>
+              </View>
               {lightType ? (
                 <View style={styles.mediaMetaItem}>
                   <Ionicons name="bulb-outline" size={16} color={colors.textMuted} />
@@ -227,6 +242,19 @@ export default function TaskDetail() {
               );
             })}
           </Card>
+
+          {photoGroups.map((group) => (
+            <Card key={group.key} tint="muted" style={styles.section}>
+              <Text style={styles.photoGroupLabel}>{group.label}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoGroupRow}>
+                {group.urls.map((url, index) => (
+                  <Pressable key={`${url}-${index}`} onPress={() => setPreviewUri(url)}>
+                    <Image source={{ uri: url }} style={styles.photoGroupThumb} resizeMode="cover" />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </Card>
+          ))}
 
           <Card tint="muted" style={styles.section}>
             <ImagesList
@@ -249,14 +277,14 @@ export default function TaskDetail() {
       )}
 
       <Modal
-        visible={previewVisible}
+        visible={!!previewUri}
         transparent
         animationType="fade"
-        onRequestClose={() => setPreviewVisible(false)}
+        onRequestClose={() => setPreviewUri(null)}
       >
-        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewVisible(false)}>
-          <Image source={{ uri: mediaPhoto }} style={styles.previewImage} resizeMode="contain" />
-          <Pressable style={styles.previewClose} onPress={() => setPreviewVisible(false)}>
+        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewUri(null)}>
+          <Image source={{ uri: previewUri ?? undefined }} style={styles.previewImage} resizeMode="contain" />
+          <Pressable style={styles.previewClose} onPress={() => setPreviewUri(null)}>
             <Ionicons name="close" size={22} color={colors.white} />
           </Pressable>
         </Pressable>
@@ -333,6 +361,23 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: 0,
       paddingHorizontal: spacing.md,
       marginBottom: spacing.md,
+    },
+    photoGroupLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    photoGroupRow: {
+      gap: spacing.sm,
+    },
+    photoGroupThumb: {
+      width: 72,
+      height: 72,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     section: {
       marginBottom: spacing.md,

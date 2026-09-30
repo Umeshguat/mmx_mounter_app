@@ -49,6 +49,10 @@ export type UserProfile = {
   name: string;
   mobile?: string;
   loginUserType: string;
+  // Distinguishes the two loginUserType "12" accounts from each other:
+  // "1" = Monitor, "0" (or anything else) = job-provider (other vendor).
+  // Absent for mounter accounts (loginUserType "13").
+  accountType?: string;
 };
 
 export async function getUserProfile(): Promise<UserProfile | null> {
@@ -134,6 +138,7 @@ export type LoginResult = {
   name: string;
   mobile?: string;
   loginUserType: string;
+  accountType?: string;
   raw: unknown;
 };
 
@@ -168,14 +173,19 @@ export async function loginRequest(
   const name = returndata.mounter_name || returndata.vendor_name || returndata.name;
   const mobile = returndata.mobile;
   const loginUserType = String(returndata.loginusertype);
+  // Only meaningful when loginUserType is "12" (Monitor and "other vendor"
+  // job-provider accounts share that same loginusertype, so this is the
+  // field that actually tells them apart — see returndata.type in the API).
+  const accountType = returndata.type !== undefined ? String(returndata.type) : undefined;
 
-  await setUserProfile({ name, mobile, loginUserType });
+  await setUserProfile({ name, mobile, loginUserType, accountType });
 
   return {
     apikey: returndata.apikey,
     name,
     mobile,
     loginUserType,
+    accountType,
     raw: body,
   };
 }
@@ -584,4 +594,145 @@ export async function completeTask(
     cartId: returndata.cart_id,
     cartStatus: returndata.cart_status,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Monitor account APIs (returndata.type === "1" at login). A monitor is
+// scoped server-side to a single vendor (returndata.ovendor_id from login),
+// so unlike the job-provider endpoints above these never take a vendorid —
+// the apikey alone identifies which vendor's worklist to return.
+// ---------------------------------------------------------------------------
+
+export type MonitorWorklistResult = {
+  items: any[];
+  count: number;
+  page: number;
+  totalPages: number;
+};
+
+export async function getMonitorWorklist(page = 1, search = ''): Promise<MonitorWorklistResult> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
+    response = await fetch(
+      `${API_BASE_URL}/app-api/field/monitorworklist?apitype=1&page=${page}${searchParam}`,
+      { method: 'GET', headers: { ...authHeaders } }
+    );
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load worklist. Please try again.');
+  const returndata = body.returndata;
+  const items = returndata.data ?? returndata.monitorworklist ?? (Array.isArray(returndata) ? returndata : []);
+
+  return {
+    items,
+    count: returndata.count ?? returndata.total ?? items.length,
+    page: returndata.page ?? page,
+    totalPages: returndata.total_pages ?? 1,
+  };
+}
+
+export type MonitorPhotoUpload = {
+  uri: string;
+};
+
+export type MonitorPhotoUploadResult = {
+  cartMonitorId: number;
+  raw: unknown;
+};
+
+/**
+ * Uploads one or more photos for a monitor task. Matches
+ * POST /field/monitor/:cartMonitorId/photo.
+ */
+export async function uploadMonitorPhoto(
+  cartMonitorId: string | number,
+  photos: MonitorPhotoUpload[],
+  remarks?: string
+): Promise<MonitorPhotoUploadResult> {
+  const authHeaders = await getAuthHeaders();
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
+
+  let response: Response;
+  try {
+    const form = new FormData();
+    if (remarks) form.append('remarks', remarks);
+    await appendTaskPhotos(form, 'photo', photos);
+
+    response = await fetch(`${API_BASE_URL}/app-api/field/monitor/${cartMonitorId}/photo`, {
+      method: 'POST',
+      headers: { ...authHeaders },
+      body: form,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Upload timed out after 60s. Try again on a stronger connection.');
+    }
+    const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    throw new Error(`Could not reach the server (${detail}). Check your connection and try again.`);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const body = await parseApiResponse(response, 'Could not upload photo. Please try again.');
+  const returndata = body.returndata;
+
+  return {
+    cartMonitorId: returndata.cart_monitor_id ?? Number(cartMonitorId),
+    raw: body,
+  };
+}
+
+export type MonitorUploadedPhoto = {
+  photoId: number;
+  imageUrl: string;
+  mediaName?: string;
+  cartMonitorId?: number;
+  uploadedOn?: string;
+};
+
+/**
+ * History of photos already uploaded via uploadMonitorPhoto, optionally
+ * bounded by a date range. Matches
+ * GET /field/monitoruploadedphotos?start_date=&end_date=.
+ * Dates are passed as-is — callers format them as the backend expects
+ * (e.g. YYYY-MM-DD).
+ */
+export async function getMonitorUploadedPhotos(
+  startDate?: string,
+  endDate?: string
+): Promise<MonitorUploadedPhoto[]> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    const params = new URLSearchParams();
+    params.set('start_date', startDate ?? '');
+    params.set('end_date', endDate ?? '');
+    response = await fetch(`${API_BASE_URL}/app-api/field/monitoruploadedphotos?${params.toString()}`, {
+      method: 'GET',
+      headers: { ...authHeaders },
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load uploaded photos. Please try again.');
+  const returndata = body.returndata;
+  const list = returndata.data ?? (Array.isArray(returndata) ? returndata : []);
+
+  return list.map((item: any) => ({
+    photoId: item.photo_id,
+    imageUrl: item.image_url,
+    mediaName: item.media_name,
+    cartMonitorId: item.cart_monitor_id,
+    uploadedOn: item.added_on,
+  }));
 }

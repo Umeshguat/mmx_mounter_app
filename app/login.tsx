@@ -24,7 +24,7 @@ import { ScreenGradient } from '../components/ScreenGradient';
 const LOGIN_TYPE_OPTIONS = [
   { id: '12', name: 'Other Vendor' },
   { id: '13', name: 'Mounter' },
-  { id: '14', name: 'Monitor' },
+  { id: '12', name: 'Monitor' },
 ];
 
 const CARD_GRADIENT = ['#F68D7E', '#DB4438'] as const;
@@ -50,6 +50,10 @@ export default function Login() {
       const result = await login(username.trim(), password, Number(loginType.id));
       if (result.loginUserType === '13') {
         router.replace('/(tabs)');
+      } else if (result.accountType === '1') {
+        // Monitor — scoped server-side to a single vendor already (no
+        // vendor-select step, unlike the job-provider "other vendor" case).
+        router.replace('/monitor-dashboard');
       } else {
         router.replace('/vendor-select');
       }

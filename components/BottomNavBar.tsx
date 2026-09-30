@@ -9,25 +9,35 @@ import { gradients } from '../theme/colors';
 import type { ThemeColors } from '../theme/colors';
 
 // Mirrors (tabs)/_layout.tsx's tab bar look for screens that live outside
-// the mounter tab group (e.g. job-provider-dashboard) — same icon set, no
-// centered "add" button since job-provider flows don't have a quick-add task.
-type NavId = 'home' | 'assignList' | 'summary' | 'profile';
+// the mounter tab group (e.g. job-provider-dashboard, monitor-dashboard) —
+// same icon set, no centered "add" button since these flows don't have a
+// quick-add task.
+type NavId = 'home' | 'assignList' | 'summary' | 'profile' | 'uploadedPhotos';
 
-const ITEMS: { id: NavId; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { id: 'home', icon: 'home' },
-  { id: 'assignList', icon: 'people' },
-  { id: 'summary', icon: 'document-text' },
-  { id: 'profile', icon: 'person' },
-];
+const ITEMS: Record<'jobProvider' | 'monitor', { id: NavId; icon: keyof typeof Ionicons.glyphMap }[]> = {
+  jobProvider: [
+    { id: 'home', icon: 'home' },
+    { id: 'assignList', icon: 'people' },
+    { id: 'summary', icon: 'document-text' },
+    { id: 'profile', icon: 'person' },
+  ],
+  monitor: [
+    { id: 'home', icon: 'home' },
+    { id: 'uploadedPhotos', icon: 'images' },
+    { id: 'profile', icon: 'person' },
+  ],
+};
 
 type Props = {
   active: NavId;
+  variant?: 'jobProvider' | 'monitor';
   // Needed to build the "assignList" destination (mounter-assigned worklist
   // is scoped to the current vendor) — omit it and that tab stays inactive.
+  // Ignored for the monitor variant, which has no per-vendor tab.
   vendorId?: string;
 };
 
-export function BottomNavBar({ active, vendorId }: Props) {
+export function BottomNavBar({ active, variant = 'jobProvider', vendorId }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors, insets.bottom), [colors, insets.bottom]);
@@ -35,20 +45,28 @@ export function BottomNavBar({ active, vendorId }: Props) {
   // Only home/profile/assignList (when vendorId is known) have a destination
   // today — summary renders as an inactive placeholder until a job-provider
   // work-summary screen exists.
-  const destinations: Partial<Record<NavId, Parameters<typeof router.push>[0]>> = {
-    // Deliberately NOT '/profile' — that path resolves into (tabs)/profile.tsx
-    // since (tabs) is a route group, which would mount the mounter's Tabs
-    // navigator (and its "+" button) underneath this job-provider session.
-    profile: '/job-provider-profile',
-    ...(vendorId
+  const destinations: Partial<Record<NavId, Parameters<typeof router.push>[0]>> =
+    variant === 'monitor'
       ? {
-          assignList: {
-            pathname: '/job-provider-worklist',
-            params: { type: 'mounter_assigned', vendorId, label: 'Mounter Assigned' },
-          },
+          home: '/monitor-dashboard',
+          uploadedPhotos: '/monitor-uploaded-photos',
+          // Deliberately NOT '/profile' — that path resolves into
+          // (tabs)/profile.tsx since (tabs) is a route group, which would
+          // mount the mounter's Tabs navigator underneath this session.
+          profile: '/job-provider-profile',
         }
-      : {}),
-  };
+      : {
+          // Deliberately NOT '/profile' — see above.
+          profile: '/job-provider-profile',
+          ...(vendorId
+            ? {
+                assignList: {
+                  pathname: '/job-provider-worklist',
+                  params: { type: 'mounter_assigned', vendorId, label: 'Mounter Assigned' },
+                },
+              }
+            : {}),
+        };
 
   return (
     <View style={styles.bar}>
@@ -58,7 +76,7 @@ export function BottomNavBar({ active, vendorId }: Props) {
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      {ITEMS.map((item) => {
+      {ITEMS[variant].map((item) => {
         const isActive = item.id === active;
         const destination = destinations[item.id];
         return (

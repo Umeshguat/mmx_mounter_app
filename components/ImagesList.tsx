@@ -4,6 +4,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { captureRef } from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -37,6 +38,7 @@ type LocationDetails = {
   flag: string;
   latText: string;
   lngText: string;
+  mapTileUri: string;
 };
 
 type StampJob = {
@@ -56,6 +58,24 @@ function flagFromIso(iso?: string | null): string {
   return iso
     .toUpperCase()
     .replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}
+
+function formatStampDate(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${date.getFullYear()}`;
+}
+
+// Standard slippy-map tile lookup (OpenStreetMap) — turns a lat/lon into the
+// single tile that contains it, so the stamp can show a small map thumbnail
+// without needing a paid maps API key.
+const MAP_TILE_ZOOM = 16;
+function mapTileUrl(lat: number, lon: number): string {
+  const latRad = (lat * Math.PI) / 180;
+  const n = 2 ** MAP_TILE_ZOOM;
+  const x = Math.floor(((lon + 180) / 360) * n);
+  const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n);
+  return `https://tile.openstreetmap.org/${MAP_TILE_ZOOM}/${x}/${y}.png`;
 }
 
 function formatGmtOffset(date: Date): string {
@@ -96,6 +116,7 @@ async function getLocationDetails(): Promise<LocationDetails | null> {
       flag,
       latText: `${Math.abs(latitude).toFixed(6)}°${latitude >= 0 ? 'N' : 'S'}`,
       lngText: `${Math.abs(longitude).toFixed(6)}°${longitude >= 0 ? 'E' : 'W'}`,
+      mapTileUri: mapTileUrl(latitude, longitude),
     };
   } catch {
     return null;
@@ -116,6 +137,9 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
   // Resolved by the hidden photo's onLoad — capturing before the bitmap has
   // actually decoded and painted produces a blank/black capture.
   const imageLoadedRef = useRef<(() => void) | null>(null);
+  // Same idea for the map tile thumbnail, which loads over the network and
+  // can easily still be blank when the photo itself has already finished.
+  const mapLoadedRef = useRef<(() => void) | null>(null);
 
   const addAsset = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
@@ -170,8 +194,8 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
       uri: asset.uri,
       width,
       height,
-      dateText: now.toLocaleDateString(),
-      timeText: now.toLocaleTimeString(),
+      dateText: formatStampDate(now),
+      timeText: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       gmtText: formatGmtOffset(now),
       location,
       showDateTime: dateTimeStamp,
@@ -183,7 +207,13 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
       // let the whole upload hang forever, just capture whatever is there.
       setTimeout(resolve, 4000);
     });
-    await imageLoaded;
+    const mapLoaded = location
+      ? new Promise<void>((resolve) => {
+          mapLoadedRef.current = resolve;
+          setTimeout(resolve, 4000);
+        })
+      : Promise.resolve();
+    await Promise.all([imageLoaded, mapLoaded]);
     await waitForNextFrame();
 
     try {
@@ -315,39 +345,56 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
               fadeDuration={0}
               onLoadEnd={() => imageLoadedRef.current?.()}
             />
-            <View style={styles.stampOverlay}>
-              {stampJob.location ? (
-                <View style={styles.stampInfo}>
-                  <View style={styles.stampPlaceRow}>
-                    <Text style={styles.stampPlace} numberOfLines={1}>
-                      {stampJob.location.placeName}
-                    </Text>
-                    {stampJob.location.flag ? (
-                      <Text style={styles.stampFlag}>{stampJob.location.flag}</Text>
-                    ) : null}
+            {stampJob.location ? (
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.35)', 'rgba(0,0,0,0.7)']}
+                locations={[0, 0.4, 1]}
+                style={styles.stampOverlay}
+              >
+                <View style={styles.stampRow}>
+                  <View style={styles.stampMapWrap}>
+                    <Image
+                      source={{ uri: stampJob.location.mapTileUri }}
+                      style={styles.stampMapTile}
+                      fadeDuration={0}
+                      onLoadEnd={() => mapLoadedRef.current?.()}
+                    />
+                    <View style={styles.stampMapPin} pointerEvents="none">
+                      <Ionicons name="location" size={22} color="#EA4335" />
+                    </View>
                   </View>
-                  {stampJob.location.addressLine ? (
-                    <Text style={styles.stampAddress} numberOfLines={2}>
-                      {stampJob.location.addressLine}
+                  <View style={styles.stampInfo}>
+                    <View style={styles.stampPlaceRow}>
+                      <Text style={styles.stampPlace} numberOfLines={1}>
+                        {stampJob.location.placeName}
+                      </Text>
+                      {stampJob.location.flag ? (
+                        <Text style={styles.stampFlag}>{stampJob.location.flag}</Text>
+                      ) : null}
+                    </View>
+                    {stampJob.location.addressLine ? (
+                      <Text style={styles.stampAddress} numberOfLines={2}>
+                        {stampJob.location.addressLine}
+                      </Text>
+                    ) : null}
+                    <Text style={styles.stampMeta}>
+                      Lat {stampJob.location.latText} Long {stampJob.location.lngText}
                     </Text>
-                  ) : null}
-                  <Text style={styles.stampMeta}>
-                    Lat {stampJob.location.latText} Long {stampJob.location.lngText}
-                  </Text>
-                  {stampJob.showDateTime ? (
                     <Text style={styles.stampMeta}>
                       {stampJob.dateText}, {stampJob.timeText} {stampJob.gmtText}
                     </Text>
-                  ) : null}
+                  </View>
                 </View>
-              ) : stampJob.showDateTime ? (
-                <View style={styles.stampInfo}>
-                  <Text style={styles.stampMeta}>
-                    {stampJob.dateText}, {stampJob.timeText} {stampJob.gmtText}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+              </LinearGradient>
+            ) : stampJob.showDateTime ? (
+              // Date/time-only mode: a plain red watermark in the bottom-right
+              // corner, no background box — distinct from the geotag stamp's
+              // transparent gradient info panel.
+              <View style={styles.stampDateTimeCorner} pointerEvents="none">
+                <Text style={styles.stampDateTimeText}>{stampJob.dateText}</Text>
+                <Text style={styles.stampDateTimeText}>{stampJob.timeText}</Text>
+              </View>
+            ) : null}
           </View>
         </View>
       ) : null}
@@ -464,8 +511,33 @@ function createStyles(colors: ThemeColors) {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(255,255,255,0.92)',
       padding: 10,
+      paddingTop: 24,
+    },
+    stampRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 10,
+    },
+    stampMapWrap: {
+      width: 64,
+      height: 64,
+      borderRadius: 8,
+      overflow: 'hidden',
+      backgroundColor: '#DDE3E8',
+    },
+    stampMapTile: {
+      width: '100%',
+      height: '100%',
+    },
+    stampMapPin: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     stampInfo: {
       flex: 1,
@@ -477,23 +549,46 @@ function createStyles(colors: ThemeColors) {
     },
     stampPlace: {
       flexShrink: 1,
-      color: '#1A1A2E',
+      color: '#FFFFFF',
       fontSize: 24,
       fontWeight: '700',
+      textShadowColor: 'rgba(0,0,0,0.7)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
     },
     stampFlag: {
       fontSize: 24,
     },
     stampAddress: {
-      color: '#3A3A4A',
+      color: '#EDEDED',
       fontSize: 18,
       marginTop: 3,
+      textShadowColor: 'rgba(0,0,0,0.7)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
     },
     stampMeta: {
-      color: '#3A3A4A',
+      color: '#EDEDED',
       fontSize: 18,
       fontWeight: '600',
       marginTop: 3,
+      textShadowColor: 'rgba(0,0,0,0.7)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
+    },
+    stampDateTimeCorner: {
+      position: 'absolute',
+      right: 10,
+      bottom: 8,
+      alignItems: 'flex-end',
+    },
+    stampDateTimeText: {
+      color: '#E8342B',
+      fontSize: 24,
+      fontWeight: '700',
+      textShadowColor: 'rgba(0,0,0,0.6)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
     },
     previewBackdrop: {
       flex: 1,

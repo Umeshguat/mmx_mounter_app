@@ -18,6 +18,11 @@ export default function Splash() {
     const timer = setTimeout(() => {
       if (!isLoggedIn) {
         router.replace('/login');
+      } else if (userProfile?.loginUserType === '12' && userProfile?.accountType === '1') {
+        // Monitor — scoped server-side to a single vendor already, so it
+        // never goes through vendor-select, unlike the job-provider case
+        // below (same loginUserType "12", but accountType tells them apart).
+        router.replace('/monitor-dashboard');
       } else if (userProfile?.loginUserType === '12') {
         // Job-provider (other vendor): always lands back on their own
         // dashboard, never the mounter tabs — matching login.tsx's fresh-login routing.
