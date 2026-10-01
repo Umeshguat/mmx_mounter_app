@@ -603,6 +603,35 @@ export async function completeTask(
 // the apikey alone identifies which vendor's worklist to return.
 // ---------------------------------------------------------------------------
 
+export type MonitorDashboardResult = {
+  todayCount: number;
+  pendingCount: number;
+};
+
+export async function getMonitorDashboard(): Promise<MonitorDashboardResult> {
+  const authHeaders = await getAuthHeaders();
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/app-api/field/monitordashboard`, {
+      method: 'GET',
+      headers: { ...authHeaders },
+    });
+  } catch {
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  }
+
+  const body = await parseApiResponse(response, 'Could not load dashboard. Please try again.');
+  const returndata = body.returndata;
+
+  return {
+    todayCount: returndata.today_count ?? 0,
+    pendingCount: returndata.pending_count ?? 0,
+  };
+}
+
+export type MonitorWorklistType = 'today' | 'pending';
+
 export type MonitorWorklistResult = {
   items: any[];
   count: number;
@@ -610,14 +639,25 @@ export type MonitorWorklistResult = {
   totalPages: number;
 };
 
-export async function getMonitorWorklist(page = 1, search = ''): Promise<MonitorWorklistResult> {
+export async function getMonitorWorklist(
+  page = 1,
+  search = '',
+  startDate?: string,
+  endDate?: string,
+  type?: MonitorWorklistType
+): Promise<MonitorWorklistResult> {
   const authHeaders = await getAuthHeaders();
 
   let response: Response;
   try {
     const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
+    const dateParam =
+      startDate && endDate
+        ? `&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`
+        : '';
+    const typeParam = type ? `&type=${encodeURIComponent(type)}` : '';
     response = await fetch(
-      `${API_BASE_URL}/app-api/field/monitorworklist?apitype=1&page=${page}${searchParam}`,
+      `${API_BASE_URL}/app-api/field/monitorworklist?apitype=1&page=${page}${searchParam}${dateParam}${typeParam}`,
       { method: 'GET', headers: { ...authHeaders } }
     );
   } catch {

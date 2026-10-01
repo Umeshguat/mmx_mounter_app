@@ -1,42 +1,36 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { spacing } from '../theme/spacing';
+import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
-import { uploadMonitorPhoto } from '../services/api';
+import { getTaskDetail, uploadMonitorPhoto } from '../services/api';
 import { capitalizeFirst } from '../utils/format';
 
-// There's no dedicated "get monitor task" endpoint — the worklist row already
-// carries everything this screen shows, so monitor-worklist.tsx passes it
-// straight through as a serialized param instead of a second network call.
-function parseItem(raw: string | undefined): Record<string, any> {
-  if (!raw) return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-}
+const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image', 'media_photo_url'];
+const LOCATION_KEYS = ['location', 'address', 'site_location', 'site_address'];
 
-const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string }[] = [
+const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string; alwaysShow?: boolean }[] = [
   { keys: ['campaign_name', 'campaignname'], label: 'Campaign Name', format: capitalizeFirst },
   { keys: ['media_type'], label: 'Media Type' },
   { keys: ['media_name'], label: 'Media Name' },
   { keys: ['media_code'], label: 'Media Code' },
-  { keys: ['media_size', 'size'], label: 'Size' },
+  // The backend often sends both media_size and size as null — still shown
+  // (as "-") rather than silently dropped, so the field's absence is visible.
+  { keys: ['media_size', 'size'], label: 'Size', alwaysShow: true },
   { keys: ['order_number'], label: 'Order Number' },
-  { keys: ['location', 'address'], label: 'Location' },
+  { keys: ['start_date'], label: 'Start Date' },
+  { keys: ['end_date'], label: 'End Date' },
 ];
 
-function fieldOf(task: Record<string, any>, keys: string[]): string | undefined {
+function fieldOf(task: Record<string, any> | null, keys: string[]): string | undefined {
   for (const key of keys) {
-    const value = task[key];
+    const value = task?.[key];
     if (value !== undefined && value !== null && value !== '') return String(value);
   }
   return undefined;
@@ -48,13 +42,30 @@ export default function MonitorTaskDetail() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
-  const { cartMonitorId, item } = useLocalSearchParams<{ cartMonitorId: string; item?: string }>();
+  const { cartMonitorId } = useLocalSearchParams<{ cartMonitorId: string }>();
 
-  const task = useMemo(() => parseItem(item), [item]);
-  const title = task.media_name ?? task.title ?? `Task #${cartMonitorId}`;
-  const rows = DETAIL_FIELDS.map(({ keys, label, format }) => {
+  const [task, setTask] = useState<Record<string, any> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cartMonitorId) return;
+    setLoading(true);
+    setError(null);
+    getTaskDetail(cartMonitorId)
+      .then(setTask)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load task details.'))
+      .finally(() => setLoading(false));
+  }, [cartMonitorId]);
+
+  const title = task?.media_name ?? task?.title ?? `Task #${cartMonitorId}`;
+  const mediaPhoto = fieldOf(task, MEDIA_PHOTO_KEYS);
+  const location = fieldOf(task, LOCATION_KEYS);
+  const detailRows = DETAIL_FIELDS.map(({ keys, label, format, alwaysShow }) => {
     const value = fieldOf(task, keys);
-    return { label, value: value !== undefined && format ? format(value) : value };
+    const display = value !== undefined && format ? format(value) : value;
+    return { label, value: display ?? (alwaysShow ? '-' : undefined) };
   }).filter((row) => row.value !== undefined);
 
   const [photos, setPhotos] = useState<PickedImage[]>([]);
@@ -95,30 +106,66 @@ export default function MonitorTaskDetail() {
     <ScreenGradient style={styles.container}>
       <ScreenHeader title="Task Detail" />
 
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <Card tint="muted" style={styles.card}>
-          <Text style={styles.title}>{title}</Text>
-          {rows.map((row, index) => (
-            <View key={row.label} style={[styles.row, index === rows.length - 1 && styles.rowLast]}>
-              <Text style={styles.label}>{row.label}</Text>
-              <Text style={styles.value}>{row.value}</Text>
-            </View>
-          ))}
-        </Card>
+      {loading ? (
+        <ActivityIndicator
+          color={colors.primaryStart}
+          style={[styles.loading, { marginTop: headerHeight + spacing.lg }]}
+        />
+      ) : error ? (
+        <Text style={[styles.errorText, { marginTop: headerHeight + spacing.lg }]}>{error}</Text>
+      ) : (
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <Card tint="muted" style={styles.mediaCard}>
+            {mediaPhoto ? (
+              <Pressable onPress={() => setPreviewUri(mediaPhoto)}>
+                <Image source={{ uri: mediaPhoto }} style={styles.mediaPhoto} resizeMode="cover" />
+              </Pressable>
+            ) : (
+              <View style={styles.mediaPhotoPlaceholder}>
+                <Ionicons name="image-outline" size={32} color={colors.textFaint} />
+              </View>
+            )}
+            <Text style={styles.title}>{title}</Text>
+            {location ? <Text style={styles.location}>{location}</Text> : null}
+          </Card>
 
-        <Card tint="muted" style={styles.section}>
-          <ImagesList
-            label="Upload Photos"
-            images={photos}
-            onAdd={onAddPhoto}
-            onUpload={onUploadPhotos}
-            uploading={uploading}
-          />
-        </Card>
-      </ScrollView>
+          <Card tint="muted" style={styles.card}>
+            {detailRows.map((row, index) => (
+              <View key={row.label} style={[styles.row, index === detailRows.length - 1 && styles.rowLast]}>
+                <Text style={styles.label}>{row.label}</Text>
+                <Text style={styles.value}>{row.value}</Text>
+              </View>
+            ))}
+          </Card>
+
+          <Card tint="muted" style={styles.section}>
+            <ImagesList
+              label="Upload Photos"
+              images={photos}
+              onAdd={onAddPhoto}
+              onUpload={onUploadPhotos}
+              uploading={uploading}
+            />
+          </Card>
+        </ScrollView>
+      )}
+
+      <Modal
+        visible={!!previewUri}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewUri(null)}
+      >
+        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewUri(null)}>
+          <Image source={{ uri: previewUri ?? undefined }} style={styles.previewImage} resizeMode="contain" />
+          <Pressable style={styles.previewClose} onPress={() => setPreviewUri(null)}>
+            <Ionicons name="close" size={22} color={colors.white} />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenGradient>
   );
 }
@@ -133,16 +180,48 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xxl,
     },
-    card: {
-      paddingVertical: 0,
-      paddingHorizontal: spacing.md,
+    loading: {
+      alignSelf: 'center',
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.danger,
+      textAlign: 'center',
+      paddingHorizontal: spacing.lg,
+    },
+    mediaCard: {
+      marginBottom: spacing.md,
+    },
+    mediaPhoto: {
+      width: '100%',
+      height: 180,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      marginBottom: spacing.md,
+    },
+    mediaPhotoPlaceholder: {
+      width: '100%',
+      height: 180,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
       marginBottom: spacing.md,
     },
     title: {
       fontSize: 22,
       fontWeight: '800',
       color: colors.text,
-      paddingTop: spacing.md,
+    },
+    location: {
+      marginTop: 2,
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    card: {
+      paddingVertical: 0,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
     },
     section: {
       marginBottom: spacing.md,
@@ -169,6 +248,27 @@ function createStyles(colors: ThemeColors) {
       fontWeight: '600',
       color: colors.text,
       textAlign: 'right',
+    },
+    previewBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.9)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewImage: {
+      width: '100%',
+      height: '80%',
+    },
+    previewClose: {
+      position: 'absolute',
+      top: spacing.xxl,
+      right: spacing.lg,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }

@@ -353,14 +353,21 @@ export function ImagesList({ images, onAdd, onUpload, uploading, label = 'Add im
               >
                 <View style={styles.stampRow}>
                   <View style={styles.stampMapWrap}>
-                    <Image
-                      source={{ uri: stampJob.location.mapTileUri }}
-                      style={styles.stampMapTile}
-                      fadeDuration={0}
-                      onLoadEnd={() => mapLoadedRef.current?.()}
-                    />
-                    <View style={styles.stampMapPin} pointerEvents="none">
-                      <Ionicons name="location" size={22} color="#EA4335" />
+                    <View style={styles.stampMapTileWrap}>
+                      <Image
+                        source={{ uri: stampJob.location.mapTileUri }}
+                        style={styles.stampMapTile}
+                        fadeDuration={0}
+                        onLoadEnd={() => mapLoadedRef.current?.()}
+                      />
+                      <View style={styles.stampMapPin} pointerEvents="none">
+                        <Ionicons name="location" size={20} color="#EA4335" />
+                      </View>
+                    </View>
+                    <View style={styles.stampMapAttribution}>
+                      <Text style={styles.stampMapAttributionText} numberOfLines={1}>
+                        OpenStreetMap
+                      </Text>
                     </View>
                   </View>
                   <View style={styles.stampInfo}>
@@ -516,15 +523,18 @@ function createStyles(colors: ThemeColors) {
     },
     stampRow: {
       flexDirection: 'row',
-      alignItems: 'flex-end',
+      alignItems: 'flex-start',
       gap: 10,
     },
     stampMapWrap: {
-      width: 64,
-      height: 64,
+      width: 84,
       borderRadius: 8,
       overflow: 'hidden',
       backgroundColor: '#DDE3E8',
+    },
+    stampMapTileWrap: {
+      width: '100%',
+      height: 72,
     },
     stampMapTile: {
       width: '100%',
@@ -538,6 +548,20 @@ function createStyles(colors: ThemeColors) {
       bottom: 6,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    // Mirrors the reference GPS-camera app's "Google" wordmark strip, but
+    // labeled for the actual tile source (free OpenStreetMap tiles — no
+    // Google Maps API key is configured, so showing "Google" here would
+    // misattribute the data).
+    stampMapAttribution: {
+      backgroundColor: '#F1F3F4',
+      paddingVertical: 4,
+      alignItems: 'center',
+    },
+    stampMapAttributionText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: '#5F6368',
     },
     stampInfo: {
       flex: 1,

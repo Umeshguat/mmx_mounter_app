@@ -12,9 +12,23 @@ import { SidebarMenu } from '../components/SidebarMenu';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { ScreenGradient } from '../components/ScreenGradient';
 import { useApp } from '../context/AppContext';
-import { getMonitorUploadedPhotos, getMonitorWorklist } from '../services/api';
+import { getMonitorDashboard, getMonitorUploadedPhotos, getMonitorWorklist } from '../services/api';
 
 const HEADER_CONTENT_HEIGHT = 56;
+
+// Both monitorworklist and monitoruploadedphotos take start_date/end_date
+// as YYYY-MM-DD (confirmed against the backend's validation error message).
+function toApiDate(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Default range for the Worklist overview tile: far enough back to include
+// everything, through today. No pickers on this screen — the Worklist screen
+// itself has its own date-range filter for browsing.
+const DEFAULT_START_DATE = new Date(2020, 0, 1);
 
 export default function MonitorDashboard() {
   const { colors } = useTheme();
@@ -24,6 +38,10 @@ export default function MonitorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { userProfile } = useApp();
 
+  const startDate = DEFAULT_START_DATE;
+  const endDate = useMemo(() => new Date(), []);
+  const [todayCount, setTodayCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
   const [worklistCount, setWorklistCount] = useState(0);
   const [uploadedPhotoCount, setUploadedPhotoCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -33,14 +51,38 @@ export default function MonitorDashboard() {
     useCallback(() => {
       setStatsLoading(true);
       setStatsError(null);
-      Promise.all([getMonitorWorklist(1), getMonitorUploadedPhotos()])
-        .then(([worklist, photos]) => {
-          setWorklistCount(worklist.count);
-          setUploadedPhotoCount(photos.length);
+      // allSettled, not all — one endpoint failing (e.g. a validation error
+      // on a single call) shouldn't blank out every card; show whatever
+      // succeeded and surface the error only if everything failed.
+      Promise.allSettled([
+        getMonitorDashboard(),
+        getMonitorWorklist(1, '', toApiDate(startDate), toApiDate(endDate)),
+        getMonitorUploadedPhotos(toApiDate(startDate), toApiDate(endDate)),
+      ])
+        .then(([dashboard, worklist, photos]) => {
+          if (dashboard.status === 'fulfilled') {
+            setTodayCount(dashboard.value.todayCount);
+            setPendingCount(dashboard.value.pendingCount);
+          }
+          if (worklist.status === 'fulfilled') {
+            setWorklistCount(worklist.value.count);
+          }
+          if (photos.status === 'fulfilled') {
+            setUploadedPhotoCount(photos.value.length);
+          }
+          const firstError = [dashboard, worklist, photos].find(
+            (r): r is PromiseRejectedResult => r.status === 'rejected'
+          );
+          setStatsError(
+            dashboard.status === 'rejected' && worklist.status === 'rejected' && photos.status === 'rejected'
+              ? firstError?.reason instanceof Error
+                ? firstError.reason.message
+                : 'Could not load dashboard.'
+              : null
+          );
         })
-        .catch((error) => setStatsError(error instanceof Error ? error.message : 'Could not load dashboard.'))
         .finally(() => setStatsLoading(false));
-    }, [])
+    }, [startDate, endDate])
   );
 
   return (
@@ -75,12 +117,43 @@ export default function MonitorDashboard() {
             ) : (
               <View style={styles.statsGrid}>
                 <StatCard
+                  label="Today"
+                  value={todayCount}
+                  icon="calendar-outline"
+                  background={colors.cardGreen}
+                  iconColor={colors.cardGreenIcon}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/monitor-worklist',
+                      params: { type: 'today', label: 'Today' },
+                    })
+                  }
+                />
+                <StatCard
+                  label="Pending"
+                  value={pendingCount}
+                  icon="hourglass-outline"
+                  background={colors.cardOrange}
+                  iconColor={colors.cardOrangeIcon}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/monitor-worklist',
+                      params: { type: 'pending', label: 'Pending' },
+                    })
+                  }
+                />
+                <StatCard
                   label="Worklist"
                   value={worklistCount}
                   icon="list-outline"
                   background={colors.cardBlue}
                   iconColor={colors.cardBlueIcon}
-                  onPress={() => router.push('/monitor-worklist')}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/monitor-worklist',
+                      params: { startDate: toApiDate(startDate), endDate: toApiDate(endDate) },
+                    })
+                  }
                 />
                 <StatCard
                   label="Uploaded Photos"

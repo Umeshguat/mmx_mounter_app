@@ -1,17 +1,37 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
 import type { ThemeColors } from '../theme/colors';
 import { Card } from '../components/Card';
+import { DateField } from '../components/DateField';
 import { TextField } from '../components/TextField';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
-import { getMonitorWorklist } from '../services/api';
+import { getMonitorWorklist, type MonitorWorklistType } from '../services/api';
 
 const SEARCH_DEBOUNCE_MS = 400;
+
+// monitorworklist's start_date/end_date take YYYY-MM-DD (confirmed against
+// the backend's validation error message).
+function toApiDate(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function parseApiDate(value: string | undefined): Date | null {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, yyyy, mm, dd] = match;
+  return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+}
+
+const DEFAULT_START_DATE = new Date(2020, 0, 1);
 
 function fieldOf(item: any, keys: string[]): string | undefined {
   for (const key of keys) {
@@ -26,7 +46,16 @@ export default function MonitorWorklist() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
+  const params = useLocalSearchParams<{
+    startDate?: string;
+    endDate?: string;
+    type?: MonitorWorklistType;
+    label?: string;
+  }>();
+  const { type, label } = params;
 
+  const [startDate, setStartDate] = useState<Date>(() => parseApiDate(params.startDate) ?? DEFAULT_START_DATE);
+  const [endDate, setEndDate] = useState<Date>(() => parseApiDate(params.endDate) ?? new Date());
   const [items, setItems] = useState<any[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -46,7 +75,8 @@ export default function MonitorWorklist() {
     useCallback(() => {
       setLoading(true);
       setError(null);
-      getMonitorWorklist(1, search)
+      const dateArgs: [string?, string?] = type ? [undefined, undefined] : [toApiDate(startDate), toApiDate(endDate)];
+      getMonitorWorklist(1, search, ...dateArgs, type)
         .then((result) => {
           setItems(result.items);
           setCount(result.count);
@@ -55,13 +85,14 @@ export default function MonitorWorklist() {
         })
         .catch((err) => setError(err instanceof Error ? err.message : 'Could not load worklist.'))
         .finally(() => setLoading(false));
-    }, [search])
+    }, [search, startDate, endDate, type])
   );
 
   const loadMore = () => {
     if (loadingMore || page >= totalPages) return;
     setLoadingMore(true);
-    getMonitorWorklist(page + 1, search)
+    const dateArgs: [string?, string?] = type ? [undefined, undefined] : [toApiDate(startDate), toApiDate(endDate)];
+    getMonitorWorklist(page + 1, search, ...dateArgs, type)
       .then((result) => {
         setItems((prev) => [...prev, ...result.items]);
         setPage(result.page);
@@ -73,7 +104,7 @@ export default function MonitorWorklist() {
 
   return (
     <ScreenGradient style={styles.container}>
-      <ScreenHeader title="Worklist" />
+      <ScreenHeader title={label ?? 'Worklist'} />
 
       <View style={[styles.searchWrap, { marginTop: headerHeight + spacing.md }]}>
         <TextField
@@ -84,6 +115,17 @@ export default function MonitorWorklist() {
           autoCapitalize="none"
         />
       </View>
+
+      {type ? null : (
+        <View style={styles.filterRow}>
+          <View style={styles.filterField}>
+            <DateField placeholder="Start date" value={startDate} onChange={setStartDate} />
+          </View>
+          <View style={styles.filterField}>
+            <DateField placeholder="End date" value={endDate} onChange={setEndDate} />
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator color={colors.primaryStart} style={styles.loading} />
@@ -115,7 +157,7 @@ export default function MonitorWorklist() {
                   cartMonitorId &&
                   router.push({
                     pathname: '/monitor-task-detail',
-                    params: { cartMonitorId, item: JSON.stringify(item) },
+                    params: { cartMonitorId },
                   })
                 }
               >
@@ -166,6 +208,15 @@ function createStyles(colors: ThemeColors) {
     searchWrap: {
       paddingHorizontal: spacing.lg,
       marginBottom: spacing.md,
+    },
+    filterRow: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      paddingHorizontal: spacing.lg,
+      marginBottom: spacing.md,
+    },
+    filterField: {
+      flex: 1,
     },
     content: {
       paddingHorizontal: spacing.lg,
