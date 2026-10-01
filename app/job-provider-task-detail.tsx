@@ -19,14 +19,14 @@ const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image'
 // a task (no remarks/photo-upload UI here, this is read-only).
 const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string; alwaysShow?: boolean }[] = [
   { keys: ['campaign_name', 'campaignname'], label: 'Campaign Name', format: capitalizeFirst },
-  { keys: ['media_type'], label: 'Media Type' },
+  { keys: ['media_type'], label: 'Media Type', alwaysShow: true },
   { keys: ['media_name'], label: 'Media Name' },
   { keys: ['media_code'], label: 'Media Code' },
   // The backend often sends both media_size and size as null — still shown
   // (as "-") rather than silently dropped, so the field's absence is visible.
   { keys: ['media_size', 'size'], label: 'Size', alwaysShow: true },
   { keys: ['quantity'], label: 'Qty' },
-  { keys: ['light_type', 'lighting_type'], label: 'Light Type' },
+  { keys: ['light_type', 'lighting_type'], label: 'Light Type', alwaysShow: true },
   { keys: ['order_number'], label: 'Order Number' },
   { keys: ['start_date'], label: 'Start Date' },
   { keys: ['end_date'], label: 'End Date' },

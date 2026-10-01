@@ -122,6 +122,7 @@ export default function TaskDetail() {
     label: humanizeKey(key),
     urls: (Array.isArray(task?.[key]) ? task[key] : []).map(photoUrlOf).filter((u): u is string => !!u),
   })).filter((group) => group.urls.length > 0);
+  const mediaType = fieldOf(task, ['media_type']);
   const lightType = fieldOf(task, LIGHT_TYPE_KEYS);
 
   const hasUploadedPhoto = photos.some((p) => p.uploadStatus === 'uploaded');
@@ -222,12 +223,14 @@ export default function TaskDetail() {
                 <Ionicons name="resize-outline" size={16} color={colors.textMuted} />
                 <Text style={styles.mediaMetaText}>{mediaSize ?? '-'}</Text>
               </View>
-              {lightType ? (
-                <View style={styles.mediaMetaItem}>
-                  <Ionicons name="bulb-outline" size={16} color={colors.textMuted} />
-                  <Text style={styles.mediaMetaText}>{lightType}</Text>
-                </View>
-              ) : null}
+              <View style={styles.mediaMetaItem}>
+                <Ionicons name="pricetag-outline" size={16} color={colors.textMuted} />
+                <Text style={styles.mediaMetaText}>{mediaType ?? '-'}</Text>
+              </View>
+              <View style={styles.mediaMetaItem}>
+                <Ionicons name="bulb-outline" size={16} color={colors.textMuted} />
+                <Text style={styles.mediaMetaText}>{lightType ?? '-'}</Text>
+              </View>
             </View>
           </Card>
 
