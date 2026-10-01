@@ -135,7 +135,9 @@ export default function MonitorWorklist() {
         <FlatList
           data={items}
           keyExtractor={(item, index) =>
-            fieldOf(item, ['cart_monitor_id', 'cart_id', 'id']) ?? String(index)
+            // cart_id is the confirmed id field (matches GET /field/task/:cartId's
+            // own response) — cart_monitor_id/id are speculative fallbacks only.
+            fieldOf(item, ['cart_id', 'cart_monitor_id', 'id']) ?? String(index)
           }
           contentContainerStyle={styles.content}
           onEndReached={loadMore}
@@ -149,7 +151,7 @@ export default function MonitorWorklist() {
             const campaignName = fieldOf(item, ['campaign_name', 'campaignname']);
             const orderNumber = fieldOf(item, ['order_number']);
             const subtitle = fieldOf(item, ['location', 'address', 'media_code']);
-            const cartMonitorId = fieldOf(item, ['cart_monitor_id', 'cart_id', 'id']);
+            const cartMonitorId = fieldOf(item, ['cart_id', 'cart_monitor_id', 'id']);
 
             return (
               <Pressable

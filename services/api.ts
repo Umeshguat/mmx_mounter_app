@@ -655,9 +655,12 @@ export async function getMonitorWorklist(
       startDate && endDate
         ? `&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`
         : '';
-    const typeParam = type ? `&type=${encodeURIComponent(type)}` : '';
+    // type=today/pending is a distinct filter mode from the apitype=1 +
+    // date-range listing — mixing apitype into a type-filtered request
+    // returned no data, so apitype is only sent when type isn't used.
+    const baseParam = type ? `type=${encodeURIComponent(type)}` : 'apitype=1';
     response = await fetch(
-      `${API_BASE_URL}/app-api/field/monitorworklist?apitype=1&page=${page}${searchParam}${dateParam}${typeParam}`,
+      `${API_BASE_URL}/app-api/field/monitorworklist?${baseParam}&page=${page}${searchParam}${dateParam}`,
       { method: 'GET', headers: { ...authHeaders } }
     );
   } catch {
@@ -685,6 +688,10 @@ export type MonitorPhotoUploadResult = {
   raw: unknown;
 };
 
+// Server-required: 0 = day, 1 = night — whether the photo was taken during
+// the day or at night (relevant for lit media like LED/night-light boards).
+export type DayType = 0 | 1;
+
 /**
  * Uploads one or more photos for a monitor task. Matches
  * POST /field/monitor/:cartMonitorId/photo.
@@ -692,6 +699,7 @@ export type MonitorPhotoUploadResult = {
 export async function uploadMonitorPhoto(
   cartMonitorId: string | number,
   photos: MonitorPhotoUpload[],
+  dayType: DayType,
   remarks?: string
 ): Promise<MonitorPhotoUploadResult> {
   const authHeaders = await getAuthHeaders();
@@ -702,6 +710,7 @@ export async function uploadMonitorPhoto(
   let response: Response;
   try {
     const form = new FormData();
+    form.append('day_type', String(dayType));
     if (remarks) form.append('remarks', remarks);
     await appendTaskPhotos(form, 'photo', photos);
 

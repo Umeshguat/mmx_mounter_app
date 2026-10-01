@@ -9,11 +9,28 @@ import { Card } from '../components/Card';
 import { ImagesList, type PickedImage } from '../components/ImagesList';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
-import { getTaskDetail, uploadMonitorPhoto } from '../services/api';
+import { getTaskDetail, uploadMonitorPhoto, type DayType } from '../services/api';
 import { capitalizeFirst } from '../utils/format';
 
 const MEDIA_PHOTO_KEYS = ['media_photo', 'photo_url', 'image_url', 'media_image', 'media_photo_url'];
 const LOCATION_KEYS = ['location', 'address', 'site_location', 'site_address'];
+// Arrays of {photo_id, image_url}-shaped objects — rendered as thumbnail
+// strips below, same treatment as the mounter's task-detail.tsx screen.
+const PHOTO_ARRAY_KEYS = ['mounting_photos', 'removal_photos'];
+
+// Pulls a usable image URL out of whatever shape the API sends a photo
+// object in ({image_url}/{imageUrl}/{url}, or a bare string URL).
+function photoUrlOf(item: any): string | undefined {
+  if (typeof item === 'string') return item;
+  return item?.image_url ?? item?.imageUrl ?? item?.photo_url ?? item?.url ?? undefined;
+}
+
+function humanizeKey(key: string): string {
+  return key
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 const DETAIL_FIELDS: { keys: string[]; label: string; format?: (value: string) => string; alwaysShow?: boolean }[] = [
   { keys: ['campaign_name', 'campaignname'], label: 'Campaign Name', format: capitalizeFirst },
@@ -67,9 +84,20 @@ export default function MonitorTaskDetail() {
     const display = value !== undefined && format ? format(value) : value;
     return { label, value: display ?? (alwaysShow ? '-' : undefined) };
   }).filter((row) => row.value !== undefined);
+  const photoGroups = PHOTO_ARRAY_KEYS.map((key) => ({
+    key,
+    label: humanizeKey(key),
+    urls: (Array.isArray(task?.[key]) ? task![key] : []).map(photoUrlOf).filter((u): u is string => !!u),
+  })).filter((group) => group.urls.length > 0);
 
   const [photos, setPhotos] = useState<PickedImage[]>([]);
   const [uploading, setUploading] = useState(false);
+  // Defaults to the current local time of day; the monitor can override it
+  // below (e.g. photographing a night-light board's daytime appearance).
+  const [dayType, setDayType] = useState<DayType>(() => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? 0 : 1;
+  });
 
   const onAddPhoto = (image: PickedImage) => {
     setPhotos((prev) => [...prev, image]);
@@ -85,7 +113,7 @@ export default function MonitorTaskDetail() {
       prev.map((p) => (p.uploadStatus !== 'uploaded' ? { ...p, uploadStatus: 'uploading' } : p))
     );
     try {
-      await uploadMonitorPhoto(cartMonitorId, pending, DEFAULT_REMARKS);
+      await uploadMonitorPhoto(cartMonitorId, pending, dayType, DEFAULT_REMARKS);
       setPhotos((prev) =>
         prev.map((p) => (p.uploadStatus === 'uploading' ? { ...p, uploadStatus: 'uploaded' } : p))
       );
@@ -139,6 +167,47 @@ export default function MonitorTaskDetail() {
                 <Text style={styles.value}>{row.value}</Text>
               </View>
             ))}
+          </Card>
+
+          {photoGroups.map((group) => (
+            <Card key={group.key} tint="muted" style={styles.section}>
+              <Text style={styles.photoGroupLabel}>{group.label}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoGroupRow}>
+                {group.urls.map((url, index) => (
+                  <Pressable key={`${url}-${index}`} onPress={() => setPreviewUri(url)}>
+                    <Image source={{ uri: url }} style={styles.photoGroupThumb} resizeMode="cover" />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </Card>
+          ))}
+
+          <Card tint="muted" style={styles.section}>
+            <Text style={styles.photoGroupLabel}>Photo Time</Text>
+            <View style={styles.dayTypeRow}>
+              <Pressable
+                style={[styles.dayTypeOption, dayType === 0 && styles.dayTypeOptionActive]}
+                onPress={() => setDayType(0)}
+              >
+                <Ionicons
+                  name="sunny-outline"
+                  size={16}
+                  color={dayType === 0 ? colors.white : colors.textMuted}
+                />
+                <Text style={[styles.dayTypeText, dayType === 0 && styles.dayTypeTextActive]}>Day</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.dayTypeOption, dayType === 1 && styles.dayTypeOptionActive]}
+                onPress={() => setDayType(1)}
+              >
+                <Ionicons
+                  name="moon-outline"
+                  size={16}
+                  color={dayType === 1 ? colors.white : colors.textMuted}
+                />
+                <Text style={[styles.dayTypeText, dayType === 1 && styles.dayTypeTextActive]}>Night</Text>
+              </Pressable>
+            </View>
           </Card>
 
           <Card tint="muted" style={styles.section}>
@@ -225,6 +294,50 @@ function createStyles(colors: ThemeColors) {
     },
     section: {
       marginBottom: spacing.md,
+    },
+    photoGroupLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    photoGroupRow: {
+      gap: spacing.sm,
+    },
+    photoGroupThumb: {
+      width: 72,
+      height: 72,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    dayTypeRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+    dayTypeOption: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    dayTypeOptionActive: {
+      backgroundColor: colors.primaryStart,
+      borderColor: colors.primaryStart,
+    },
+    dayTypeText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textMuted,
+    },
+    dayTypeTextActive: {
+      color: colors.white,
     },
     row: {
       flexDirection: 'row',
