@@ -739,17 +739,42 @@ export async function uploadMonitorPhoto(
   };
 }
 
-export type MonitorUploadedPhoto = {
+export type MonitorUploadedPhotoEntry = {
   photoId: number;
+  dayType: string;
   imageUrl: string;
+  remarks?: string;
+  addedOn?: string;
+};
+
+// One row per monitored task, with every photo uploaded for it nested
+// inside — confirmed against the real monitoruploadedphotos response
+// (not a flat per-photo list, as originally assumed).
+export type MonitorUploadedTask = {
+  cartMonitorId: number;
+  cartId: number;
+  orderNumber?: string;
+  campaignName?: string;
+  mediaId?: number;
   mediaName?: string;
-  cartMonitorId?: number;
-  uploadedOn?: string;
+  mediaCode?: string;
+  width?: string;
+  height?: string;
+  size?: string;
+  mediaType?: string;
+  quantity?: number;
+  displayStartDate?: string;
+  displayEndDate?: string;
+  addedOn?: string;
+  clientName?: string;
+  lightType?: string;
+  uploadOn?: string;
+  photos: MonitorUploadedPhotoEntry[];
 };
 
 /**
- * History of photos already uploaded via uploadMonitorPhoto, optionally
- * bounded by a date range. Matches
+ * History of photos already uploaded via uploadMonitorPhoto, grouped by
+ * task, optionally bounded by a date range. Matches
  * GET /field/monitoruploadedphotos?start_date=&end_date=.
  * Dates are passed as-is — callers format them as the backend expects
  * (e.g. YYYY-MM-DD).
@@ -757,7 +782,7 @@ export type MonitorUploadedPhoto = {
 export async function getMonitorUploadedPhotos(
   startDate?: string,
   endDate?: string
-): Promise<MonitorUploadedPhoto[]> {
+): Promise<MonitorUploadedTask[]> {
   const authHeaders = await getAuthHeaders();
 
   let response: Response;
@@ -778,10 +803,30 @@ export async function getMonitorUploadedPhotos(
   const list = returndata.data ?? (Array.isArray(returndata) ? returndata : []);
 
   return list.map((item: any) => ({
-    photoId: item.photo_id,
-    imageUrl: item.image_url,
-    mediaName: item.media_name,
     cartMonitorId: item.cart_monitor_id,
-    uploadedOn: item.added_on,
+    cartId: item.cart_id,
+    orderNumber: item.order_number,
+    campaignName: item.campaign_name,
+    mediaId: item.media_id,
+    mediaName: item.media_name,
+    mediaCode: item.media_code,
+    width: item.width,
+    height: item.height,
+    size: item.size,
+    mediaType: item.media_type,
+    quantity: item.quantity,
+    displayStartDate: item.display_stdate,
+    displayEndDate: item.display_endate,
+    addedOn: item.added_on,
+    clientName: item.client_name,
+    lightType: item.light_type,
+    uploadOn: item.upload_on,
+    photos: (item.photos ?? []).map((p: any) => ({
+      photoId: p.photo_id,
+      dayType: p.day_type,
+      imageUrl: p.image_url,
+      remarks: p.remarks,
+      addedOn: p.added_on,
+    })),
   }));
 }

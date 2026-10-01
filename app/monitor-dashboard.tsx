@@ -68,7 +68,7 @@ export default function MonitorDashboard() {
             setWorklistCount(worklist.value.count);
           }
           if (photos.status === 'fulfilled') {
-            setUploadedPhotoCount(photos.value.length);
+            setUploadedPhotoCount(photos.value.reduce((sum, task) => sum + task.photos.length, 0));
           }
           const firstError = [dashboard, worklist, photos].find(
             (r): r is PromiseRejectedResult => r.status === 'rejected'

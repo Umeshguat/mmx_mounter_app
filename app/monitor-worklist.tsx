@@ -151,15 +151,20 @@ export default function MonitorWorklist() {
             const campaignName = fieldOf(item, ['campaign_name', 'campaignname']);
             const orderNumber = fieldOf(item, ['order_number']);
             const subtitle = fieldOf(item, ['location', 'address', 'media_code']);
-            const cartMonitorId = fieldOf(item, ['cart_id', 'cart_monitor_id', 'id']);
+            // cart_id is the confirmed field for GET /field/task/:cartId (task details).
+            const cartId = fieldOf(item, ['cart_id', 'id']);
+            // cart_monitor_id is a distinct id (confirmed via the
+            // monitoruploadedphotos response) — POST /field/monitor/:id/photo
+            // wants this, not cart_id.
+            const cartMonitorId = fieldOf(item, ['cart_monitor_id', 'id', 'cart_id']);
 
             return (
               <Pressable
                 onPress={() =>
-                  cartMonitorId &&
+                  cartId &&
                   router.push({
                     pathname: '/monitor-task-detail',
-                    params: { cartMonitorId },
+                    params: { cartId, cartMonitorId: cartMonitorId ?? cartId },
                   })
                 }
               >

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -9,7 +9,7 @@ import { Card } from '../components/Card';
 import { DateField } from '../components/DateField';
 import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { ScreenGradient } from '../components/ScreenGradient';
-import { getMonitorUploadedPhotos, type MonitorUploadedPhoto } from '../services/api';
+import { getMonitorUploadedPhotos, type MonitorUploadedTask } from '../services/api';
 
 function toApiDate(date: Date): string {
   const yyyy = date.getFullYear();
@@ -18,14 +18,31 @@ function toApiDate(date: Date): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// Order matches the fields the user asked to see, in this exact sequence.
+const DETAIL_FIELDS: { key: keyof MonitorUploadedTask; label: string }[] = [
+  { key: 'orderNumber', label: 'Order Number' },
+  { key: 'mediaId', label: 'Media ID' },
+  { key: 'mediaCode', label: 'Media Code' },
+  { key: 'width', label: 'Width' },
+  { key: 'height', label: 'Height' },
+  { key: 'size', label: 'Size' },
+  { key: 'mediaType', label: 'Media Type' },
+  { key: 'quantity', label: 'Qty' },
+  { key: 'displayStartDate', label: 'Start Date' },
+  { key: 'displayEndDate', label: 'End Date' },
+  { key: 'addedOn', label: 'Added On' },
+  { key: 'clientName', label: 'Client Name' },
+  { key: 'lightType', label: 'Light Type' },
+];
+
 export default function MonitorUploadedPhotos() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
 
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [photos, setPhotos] = useState<MonitorUploadedPhoto[]>([]);
+  const [startDate, setStartDate] = useState<Date | null>(() => new Date());
+  const [endDate, setEndDate] = useState<Date | null>(() => new Date());
+  const [tasks, setTasks] = useState<MonitorUploadedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -34,7 +51,7 @@ export default function MonitorUploadedPhotos() {
     setLoading(true);
     setError(null);
     getMonitorUploadedPhotos(start ? toApiDate(start) : undefined, end ? toApiDate(end) : undefined)
-      .then(setPhotos)
+      .then(setTasks)
       .catch((err) => setError(err instanceof Error ? err.message : 'Could not load uploaded photos.'))
       .finally(() => setLoading(false));
   }, []);
@@ -68,21 +85,45 @@ export default function MonitorUploadedPhotos() {
         <Text style={styles.errorText}>{error}</Text>
       ) : (
         <FlatList
-          data={photos}
-          keyExtractor={(item, index) => String(item.photoId ?? index)}
-          numColumns={3}
+          data={tasks}
+          keyExtractor={(item, index) => String(item.cartMonitorId ?? index)}
           contentContainerStyle={styles.content}
-          columnWrapperStyle={styles.gridRow}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <Pressable style={styles.thumbWrap} onPress={() => setPreviewUri(item.imageUrl)}>
-              <Image source={{ uri: item.imageUrl }} style={styles.thumb} resizeMode="cover" />
-              {item.mediaName ? (
-                <Text style={styles.thumbLabel} numberOfLines={1}>
-                  {item.mediaName}
-                </Text>
+            <Card elevated tint="surface" style={styles.taskCard}>
+              <Text style={styles.taskTitle}>{item.mediaName ?? 'Untitled'}</Text>
+              {item.campaignName ? <Text style={styles.taskSubtitle}>{item.campaignName}</Text> : null}
+
+              <View style={styles.detailGrid}>
+                {DETAIL_FIELDS.map(({ key, label }) => {
+                  const value = item[key];
+                  if (value === undefined || value === null || value === '') return null;
+                  return (
+                    <View key={label} style={styles.row}>
+                      <Text style={styles.label}>{label}</Text>
+                      <Text style={styles.value}>{String(value)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+
+              {item.photos.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.photoRow}
+                >
+                  {item.photos.map((photo, index) => (
+                    <Pressable
+                      key={`${photo.photoId}-${index}`}
+                      onPress={() => setPreviewUri(photo.imageUrl)}
+                    >
+                      <Image source={{ uri: photo.imageUrl }} style={styles.thumb} resizeMode="cover" />
+                    </Pressable>
+                  ))}
+                </ScrollView>
               ) : null}
-            </Pressable>
+            </Card>
           )}
           ListEmptyComponent={
             <Card tint="muted" style={styles.emptyCard}>
@@ -128,9 +169,6 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.xl,
     },
-    gridRow: {
-      gap: spacing.sm,
-    },
     loading: {
       alignSelf: 'center',
     },
@@ -140,23 +178,53 @@ function createStyles(colors: ThemeColors) {
       textAlign: 'center',
       paddingHorizontal: spacing.lg,
     },
-    thumbWrap: {
+    taskCard: {
+      marginBottom: spacing.md,
+    },
+    taskTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    taskSubtitle: {
+      marginTop: 2,
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    detailGrid: {
+      marginTop: spacing.sm,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingVertical: spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      gap: spacing.md,
+    },
+    label: {
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    value: {
       flex: 1,
-      maxWidth: '32%',
-      marginBottom: spacing.sm,
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.text,
+      textAlign: 'right',
+    },
+    photoRow: {
+      gap: spacing.sm,
+      marginTop: spacing.md,
     },
     thumb: {
-      width: '100%',
-      aspectRatio: 1,
+      width: 72,
+      height: 72,
       borderRadius: radius.md,
       backgroundColor: colors.surfaceMuted,
       borderWidth: 1,
       borderColor: colors.border,
-    },
-    thumbLabel: {
-      marginTop: 4,
-      fontSize: 11,
-      color: colors.textMuted,
     },
     emptyCard: {
       marginTop: spacing.xl,

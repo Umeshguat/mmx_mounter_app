@@ -59,7 +59,15 @@ export default function MonitorTaskDetail() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
-  const { cartMonitorId } = useLocalSearchParams<{ cartMonitorId: string }>();
+  // cartId is for GET /field/task/:cartId (task details) — confirmed correct.
+  // cartMonitorId is for POST /field/monitor/:cartMonitorId/photo, which is
+  // a different id (the monitor-assignment row's own id, not the task's
+  // cart_id) — falls back to cartId if the worklist row didn't have one.
+  const { cartId, cartMonitorId: cartMonitorIdParam } = useLocalSearchParams<{
+    cartId: string;
+    cartMonitorId?: string;
+  }>();
+  const cartMonitorId = cartMonitorIdParam ?? cartId;
 
   const [task, setTask] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,16 +75,16 @@ export default function MonitorTaskDetail() {
   const [previewUri, setPreviewUri] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!cartMonitorId) return;
+    if (!cartId) return;
     setLoading(true);
     setError(null);
-    getTaskDetail(cartMonitorId)
+    getTaskDetail(cartId)
       .then(setTask)
       .catch((err) => setError(err instanceof Error ? err.message : 'Could not load task details.'))
       .finally(() => setLoading(false));
-  }, [cartMonitorId]);
+  }, [cartId]);
 
-  const title = task?.media_name ?? task?.title ?? `Task #${cartMonitorId}`;
+  const title = task?.media_name ?? task?.title ?? `Task #${cartId}`;
   const mediaPhoto = fieldOf(task, MEDIA_PHOTO_KEYS);
   const location = fieldOf(task, LOCATION_KEYS);
   const detailRows = DETAIL_FIELDS.map(({ keys, label, format, alwaysShow }) => {
