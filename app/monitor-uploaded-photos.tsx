@@ -1,6 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type ImageStyle,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme/spacing';
@@ -21,17 +33,11 @@ function toApiDate(date: Date): string {
 // Order matches the fields the user asked to see, in this exact sequence.
 const DETAIL_FIELDS: { key: keyof MonitorUploadedTask; label: string }[] = [
   { key: 'orderNumber', label: 'Order Number' },
-  { key: 'mediaId', label: 'Media ID' },
   { key: 'mediaCode', label: 'Media Code' },
-  { key: 'width', label: 'Width' },
-  { key: 'height', label: 'Height' },
   { key: 'size', label: 'Size' },
   { key: 'mediaType', label: 'Media Type' },
-  { key: 'quantity', label: 'Qty' },
   { key: 'displayStartDate', label: 'Start Date' },
   { key: 'displayEndDate', label: 'End Date' },
-  { key: 'addedOn', label: 'Added On' },
-  { key: 'clientName', label: 'Client Name' },
   { key: 'lightType', label: 'Light Type' },
 ];
 
@@ -39,13 +45,17 @@ export default function MonitorUploadedPhotos() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const headerHeight = useScreenHeaderHeight();
+  const { width: screenWidth } = useWindowDimensions();
 
   const [startDate, setStartDate] = useState<Date | null>(() => new Date());
   const [endDate, setEndDate] = useState<Date | null>(() => new Date());
   const [tasks, setTasks] = useState<MonitorUploadedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  // Swipeable gallery: the full set of photo URLs for the task whose
+  // thumbnail was tapped, plus which one to open on. Not just a single
+  // URI, so the preview can scroll between every photo in that task.
+  const [preview, setPreview] = useState<{ urls: string[]; index: number } | null>(null);
 
   const load = useCallback((start: Date | null, end: Date | null) => {
     setLoading(true);
@@ -116,7 +126,7 @@ export default function MonitorUploadedPhotos() {
                   {item.photos.map((photo, index) => (
                     <Pressable
                       key={`${photo.photoId}-${index}`}
-                      onPress={() => setPreviewUri(photo.imageUrl)}
+                      onPress={() => setPreview({ urls: item.photos.map((p) => p.imageUrl), index })}
                     >
                       <Image source={{ uri: photo.imageUrl }} style={styles.thumb} resizeMode="cover" />
                     </Pressable>
@@ -134,21 +144,92 @@ export default function MonitorUploadedPhotos() {
       )}
 
       <Modal
-        visible={!!previewUri}
+        visible={!!preview}
         transparent
         animationType="fade"
-        onRequestClose={() => setPreviewUri(null)}
+        onRequestClose={() => setPreview(null)}
       >
-        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewUri(null)}>
-          <Image source={{ uri: previewUri ?? undefined }} style={styles.previewImage} resizeMode="contain" />
-          <Pressable style={styles.previewClose} onPress={() => setPreviewUri(null)}>
+        <View style={styles.previewBackdrop}>
+          {preview ? (
+            <GallerySwiper
+              urls={preview.urls}
+              initialIndex={preview.index}
+              screenWidth={screenWidth}
+              style={styles.previewImage}
+            />
+          ) : null}
+          <Pressable style={styles.previewClose} onPress={() => setPreview(null)}>
             <Ionicons name="close" size={22} color={colors.white} />
           </Pressable>
-        </Pressable>
+        </View>
       </Modal>
     </ScreenGradient>
   );
 }
+
+// Horizontal, paged, swipeable image viewer — lets the user scroll between
+// every photo belonging to the task whose thumbnail was tapped, instead of
+// only ever seeing the one photo they opened.
+function GallerySwiper({
+  urls,
+  initialIndex,
+  screenWidth,
+  style,
+}: {
+  urls: string[];
+  initialIndex: number;
+  screenWidth: number;
+  style: ImageStyle;
+}) {
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
+
+  return (
+    <View>
+      <FlatList
+        data={urls}
+        keyExtractor={(url, index) => `${url}-${index}`}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        initialScrollIndex={initialIndex}
+        getItemLayout={(_, index) => ({ length: screenWidth, offset: screenWidth * index, index })}
+        onMomentumScrollEnd={(e) => {
+          const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+          setActiveIndex(index);
+        }}
+        renderItem={({ item: url }) => (
+          <View style={{ width: screenWidth, alignItems: 'center', justifyContent: 'center' }}>
+            <Image source={{ uri: url }} style={style} resizeMode="contain" />
+          </View>
+        )}
+      />
+      {urls.length > 1 ? (
+        <View style={galleryStyles.counter} pointerEvents="none">
+          <Text style={galleryStyles.counterText}>
+            {activeIndex + 1} / {urls.length}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const galleryStyles = StyleSheet.create({
+  counter: {
+    position: 'absolute',
+    bottom: spacing.xxl,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+  },
+  counterText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+});
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
